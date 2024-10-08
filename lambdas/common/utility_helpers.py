@@ -8,7 +8,7 @@ from urllib3.connection import HTTPConnection
 import base64
 
 # Used to ensure we dump our JSON out with a decimal decoder, so that it gets logged okay if a decimal.
-from lambdas.common.constants import RESPONSE_HEADERS, ENV
+from lambdas.common.constants import RESPONSE_HEADERS
 
 class DecimalEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -118,14 +118,6 @@ def format_date(raw_date):
     date_mdy = raw_date.split('/')
     date = datetime.datetime(int(date_mdy[2]), int(date_mdy[0]), int(date_mdy[1]))
     return date
-
-
-def determine_url_version():
-    if ENV == 'prod':
-        return 'v1'
-    else:
-        return 'v2'
-
 
 def validate_input(input, required_fields={}, optional_fields={}):
     if input is None and not required_fields and not optional_fields:

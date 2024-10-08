@@ -2,7 +2,7 @@
 import logging
 import inspect
 import jwt
-from lambdas.common.constants import API_SECRET_KEY, AWS_ACCOUNT_ID, WHITE_LISTED_ENDPOINTS
+from lambdas.common.constants import AWS_ACCOUNT_ID, API_SECRET_KEY
 from lambdas.common.utility_helpers import build_error_handler_response
 from lambdas.common.errors import LambdaAuthorizerError
 
@@ -25,18 +25,6 @@ def generate_policy(effect, method_arn):
         }
         auth_response['policyDocument'] = policy_document
     return auth_response
-
-def check_if_whitelisted(method_arn):
-    try:
-        method_arn = method_arn.lower()
-        for endpoint in WHITE_LISTED_ENDPOINTS:
-            if endpoint['path'] in method_arn and f"/{endpoint['method']}/" in method_arn:
-                return True
-        return False
-    except Exception as err:
-        print(f'Checking for Whitelisted endpoint in Lambda Authorizer: {err}')
-        frame = inspect.currentframe()
-        raise Exception(str(err), f'{__name__}.{frame.f_code.co_name}')
 
 def decode_auth_token(auth_token):
     #Decodes the auth token

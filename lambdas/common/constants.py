@@ -1,4 +1,5 @@
 import os
+from lambdas.common.secrets_manager_helpers import get_secret
 
 # General
 AWS_DEFAULT_REGION ='us-east-1'
@@ -15,3 +16,6 @@ RESPONSE_HEADERS = {
 # Dynamodb
 DYNAMODB_KMS_ALIAS = os.environ['DYNAMODB_KMS_ALIAS']
 WRAPPED_TABLE_NAME = os.environ['WRAPPED_TABLE_NAME']
+
+# Secrets Manager
+API_SECRET_KEY = get_secret('api_secret_key')

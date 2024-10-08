@@ -3,7 +3,7 @@ import inspect
 from datetime import datetime, timezone
 
 from lambdas.common.dynamo_helpers import update_table_item, get_item_by_key
-from lambdas.common.cosntants import WRAPPED_TABLE_NAME
+from lambdas.common.constants import WRAPPED_TABLE_NAME
 
 
 def update_wrapped_data(data: dict, optional_fields={}):
