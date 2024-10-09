@@ -40,7 +40,7 @@ jobs:
           echo "LAYER_ARN=$(echo $LAYER_OUTPUT | jq -r .LayerVersionArn)" >> $GITHUB_ENV
           echo "LAYER_VERSION=$(echo $LAYER_OUTPUT | jq -r .Version)" >> $GITHUB_ENV
 
-      - name: Deploy Authorizer Lambda
+      - name: Deploy Lambda Function Code
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -49,19 +49,19 @@ jobs:
           aws lambda update-function-code \
             --function-name xomify-authorizer \
             --zip-file fileb://authorizer.zip
-          aws lambda update-function-configuration \
-            --function-name xomify-authorizer \
-            --layers ${{ env.LAYER_ARN }}
+          aws lambda update-function-code \
+            --function-name xomify-wrapped \
+            --zip-file fileb://wrapped.zip
 
-      - name: Deploy Wrapped Lambda
+      - name: Deploy Lambda Configurations
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: 'us-east-1'
         run: |
-          aws lambda update-function-code \
-            --function-name xomify-wrapped \
-            --zip-file fileb://wrapped.zip
+          aws lambda update-function-configuration \
+            --function-name xomify-authorizer \
+            --layers ${{ env.LAYER_ARN }}
           aws lambda update-function-configuration \
             --function-name xomify-wrapped \
             --layers ${{ env.LAYER_ARN }}
