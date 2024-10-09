@@ -68,13 +68,12 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: 'us-east-1'
           LAYER_ARN: ${{ env.LAYER_ARN }}
-          EXECUTION_LAYER_ARN: "arn:aws:lambda:us-east-1:770693421928:layer:AWSLambda-Execution-Python3.10:19"
         run: |
           aws lambda update-function-configuration \
             --function-name xomify-authorizer \
-            --layers "$LAYER_ARN" "$EXECUTION_LAYER_ARN" \
+            --layers $LAYER_ARN \
             --region $AWS_REGION
           aws lambda update-function-configuration \
             --function-name xomify-wrapped \
-            --layers "$LAYER_ARN" "$EXECUTION_LAYER_ARN" \
+            --layers $LAYER_ARN \
             --region $AWS_REGION
