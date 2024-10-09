@@ -72,9 +72,9 @@ jobs:
         run: |
           aws lambda update-function-configuration \
             --function-name xomify-authorizer \
-            --layers $LAYER_ARN $EXECUTION_LAYER_ARN \
+            --layers "$LAYER_ARN" "$EXECUTION_LAYER_ARN" \
             --region $AWS_REGION
           aws lambda update-function-configuration \
             --function-name xomify-wrapped \
-            --layers $LAYER_ARN $EXECUTION_LAYER_ARN \
+            --layers "$LAYER_ARN" "$EXECUTION_LAYER_ARN" \
             --region $AWS_REGION
