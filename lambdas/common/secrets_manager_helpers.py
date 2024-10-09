@@ -1,9 +1,8 @@
 import boto3
+import os
 import base64
 import json
 from botocore.exceptions import ClientError
-from lambdas.common.constants import AWS_DEFAULT_REGION
-
 
 def get_secret(secret_name):
 
@@ -11,7 +10,7 @@ def get_secret(secret_name):
     session = boto3.session.Session()
     client = session.client(
         service_name='secretsmanager',
-        region_name=AWS_DEFAULT_REGION
+        region_name='us-east-1'
     )
 
     try:
