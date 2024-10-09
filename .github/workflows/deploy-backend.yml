@@ -38,7 +38,7 @@ jobs:
             --compatible-runtimes python3.10
 
           echo "LAYER_ARN=$(echo $LAYER_OUTPUT | jq -r .LayerVersionArn)" >> $GITHUB_ENV
-          echo "LAYER_VERSION=$(echo $LAYER_OUTPUT | jq -r .Version)" >> $GITHUB_ENV
+          echo "Layer ARN: $LAYER_ARN"
 
       - name: Deploy Lambda Function Code
         env:
@@ -58,10 +58,13 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: 'us-east-1'
+          LAYER_ARN: ${{ env.LAYER_ARN }}
         run: |
           aws lambda update-function-configuration \
             --function-name xomify-authorizer \
-            --layers ${{ env.LAYER_ARN }}
+            --layers $LAYER_ARN \
+            --region $AWS_REGION
           aws lambda update-function-configuration \
             --function-name xomify-wrapped \
-            --layers ${{ env.LAYER_ARN }}
+            --layers $LAYER_ARN \
+            --region $AWS_REGION
