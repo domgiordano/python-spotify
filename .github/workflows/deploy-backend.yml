@@ -57,6 +57,7 @@ jobs:
           aws lambda update-function-code \
             --function-name xomify-wrapped \
             --zip-file fileb://wrapped.zip
+          sleep 5
 
       - name: Deploy Lambda Configurations
         env:
