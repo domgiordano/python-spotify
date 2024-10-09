@@ -142,7 +142,7 @@ def update_table_item_field(table_name, primary_key, primary_key_value, attr_key
         raise Exception(message, f'{__name__}.{frame.f_code.co_name}') if prev_path is None else Exception(message, f'{__name__}.{frame.f_code.co_name}  ->> {prev_path}')
 
 
-def check_if_item_exist(table_name, id_key, id_val):
+def check_if_item_exist(table_name, id_key, id_val, override=False):
     try:
         table = dynamodb_res.Table(table_name)
         response = table.get_item(
@@ -152,6 +152,8 @@ def check_if_item_exist(table_name, id_key, id_val):
         )
         if 'Item' in response:
             return True
+        elif override:
+            return False
         else:
             raise Exception("Invalid ID (" + id_val + "): Item Does not Exist.")
     except Exception as err:

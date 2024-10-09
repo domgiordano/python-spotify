@@ -5,7 +5,7 @@ from lambdas.common.utility_helpers import build_successful_handler_response, is
 from lambdas.common.errors import WrappednError
 from wrapped_data import update_wrapped_data, get_wrapped_data
 
-HANDLER = 'customer'
+HANDLER = 'wrapped'
 
 
 def handler(event, context):
