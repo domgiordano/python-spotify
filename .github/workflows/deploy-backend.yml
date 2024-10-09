@@ -22,10 +22,11 @@ jobs:
 
       - name: Package Lambda functions
         run: |
-          cd lambdas
-          zip -r authorizer.zip authorizer
-          zip -r wrapped.zip wrapped
-          cd ..
+          cd lambdas/authorizer
+          zip -r ../../authorizer.zip *  # Zips only the contents of the folder without including 'lambdas'
+          cd ../wrapped
+          zip -r ../../wrapped.zip *  # Zips only the contents of the folder without including 'lambdas'
+          cd ../..
           zip -r xomify-shared-packages.zip lambdas/common
 
       - name: Deploy Lambda Layer
