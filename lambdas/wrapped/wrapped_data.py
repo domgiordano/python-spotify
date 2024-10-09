@@ -2,7 +2,7 @@ import traceback
 import inspect
 from datetime import datetime, timezone
 
-from lambdas.common.dynamo_helpers import update_table_item, get_item_by_key
+from lambdas.common.dynamo_helpers import update_table_item, get_item_by_key, check_if_item_exist
 from lambdas.common.constants import WRAPPED_TABLE_NAME
 
 
@@ -21,8 +21,11 @@ def update_wrapped_data(data: dict, optional_fields={}):
 
 def get_wrapped_data(email: str):
     try:
-        response = get_item_by_key(WRAPPED_TABLE_NAME, 'email', email)
-        return response['Item']
+        if check_if_item_exist(WRAPPED_TABLE_NAME, 'email', email, True):
+            response = get_item_by_key(WRAPPED_TABLE_NAME, 'email', email)
+            return response['Item']
+        else:
+            return False
     except Exception as err:
         print(traceback.print_exc())
         frame = inspect.currentframe()
