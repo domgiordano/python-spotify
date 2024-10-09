@@ -2,7 +2,8 @@
 import logging
 import inspect
 import jwt
-from lambdas.common.constants import AWS_ACCOUNT_ID, API_SECRET_KEY
+from lambdas.common.constants import AWS_ACCOUNT_ID
+from lambdas.common.ssm_helpers import API_SECRET_KEY
 from lambdas.common.utility_helpers import build_error_handler_response
 from lambdas.common.errors import LambdaAuthorizerError
 
