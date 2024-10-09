@@ -13,7 +13,10 @@ def update_wrapped_data(data: dict, optional_fields={}):
                 data[field] = None
         db_entry = add_time_stamp(data)
         response = update_table_item(WRAPPED_TABLE_NAME, db_entry)
-        return response
+        if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+            return 'User Opted into Mothly Wrapped Success.'
+        else:
+            raise Exception('Failed to Opt User into Monthly Wrapped')
     except Exception as err:
         print(traceback.print_exc())
         frame = inspect.currentframe()
@@ -25,7 +28,7 @@ def get_wrapped_data(email: str):
             response = get_item_by_key(WRAPPED_TABLE_NAME, 'email', email)
             return response['Item']
         else:
-            return False
+            return {'active': False}
     except Exception as err:
         print(traceback.print_exc())
         frame = inspect.currentframe()
