@@ -37,6 +37,9 @@ jobs:
             --zip-file fileb://xomify-shared-packages.zip \
             --compatible-runtimes python3.10
 
+          echo "LAYER_ARN=$(echo $LAYER_OUTPUT | jq -r .LayerVersionArn)" >> $GITHUB_ENV
+          echo "LAYER_VERSION=$(echo $LAYER_OUTPUT | jq -r .Version)" >> $GITHUB_ENV
+
       - name: Deploy Authorizer Lambda
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -46,6 +49,9 @@ jobs:
           aws lambda update-function-code \
             --function-name xomify-authorizer \
             --zip-file fileb://authorizer.zip
+          aws lambda update-function-configuration \
+            --function-name xomify-authorizer \
+            --layers ${{ env.LAYER_ARN }}
 
       - name: Deploy Wrapped Lambda
         env:
@@ -56,3 +62,6 @@ jobs:
           aws lambda update-function-code \
             --function-name xomify-wrapped \
             --zip-file fileb://wrapped.zip
+          aws lambda update-function-configuration \
+            --function-name xomify-wrapped \
+            --layers ${{ env.LAYER_ARN }}
