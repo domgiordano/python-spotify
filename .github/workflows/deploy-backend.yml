@@ -29,7 +29,7 @@ jobs:
           cd ../..
           mkdir -p python/lambdas
           cp -r lambdas/common python/lambdas/
-          pip install -r requirements.txt -t python/
+          python3.10 -m pip install --platform manylinux2014_x86_64 --only-binary=:all: -t python/ -r requirements.txt
           zip -r xomify-shared-packages.zip python
 
       - name: Deploy Lambda Layer
