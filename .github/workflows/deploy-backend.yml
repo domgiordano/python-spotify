@@ -27,7 +27,10 @@ jobs:
           cd ../wrapped
           zip -r ../../wrapped.zip *  # Zips only the contents of the folder without including 'lambdas'
           cd ../..
-          zip -r xomify-shared-packages.zip lambdas/common
+          mkdir -p python/lambdas
+          cp -r lambdas/common python/lambdas/
+          pip install -r requirements.txt -t python/
+          zip -r xomify-shared-packages.zip python
 
       - name: Deploy Lambda Layer
         env:
