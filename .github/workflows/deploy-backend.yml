@@ -32,10 +32,12 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: 'us-east-1'
         run: |
-          aws lambda publish-layer-version \
+          LAYER_OUTPUT=$(aws lambda publish-layer-version \
             --layer-name xomify-shared-packages \
             --zip-file fileb://xomify-shared-packages.zip \
-            --compatible-runtimes python3.10
+            --compatible-runtimes python3.10 \
+            --region $AWS_REGION \
+            --output json)
 
           echo "LAYER_ARN=$(echo $LAYER_OUTPUT | jq -r .LayerVersionArn)" >> $GITHUB_ENV
           echo "Layer ARN: $LAYER_ARN"
