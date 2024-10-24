@@ -145,6 +145,10 @@ def add_playlist_image(playlist_id, access_token):
         # Encode the image to Base64
         base64_image = base64.b64encode(image_data).decode('utf-8')
 
+        body = {
+            "images": [base64_image]
+        }
+
         # Prepare the API URL
         url = f'{BASE_URL}/playlists/{playlist_id}/images'
 
@@ -155,7 +159,7 @@ def add_playlist_image(playlist_id, access_token):
         }
 
         # Make the PUT request
-        response = requests.put(url, headers=headers, data=base64_image)
+        response = requests.put(url, headers=headers, json=body)
 
         # Check the response
         if response.status_code != 202:
