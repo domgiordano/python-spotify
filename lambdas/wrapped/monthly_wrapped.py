@@ -5,7 +5,7 @@ import inspect
 from datetime import datetime, timedelta
 
 from lambdas.common.ssm_helpers import SPOTIFY_CLIENT_SECRET, SPOTIFY_CLIENT_ID
-from lambdas.common.constants import WRAPPED_TABLE_NAME
+from lambdas.common.constants import WRAPPED_TABLE_NAME, LOGO_BASE_64
 from lambdas.common.dynamo_helpers import full_table_scan
 
 BASE_URL = "https://api.spotify.com/v1"
@@ -138,12 +138,6 @@ def add_playlist_songs(playlist_id, uri_list, access_token):
 
 def add_playlist_image(playlist_id, access_token):
     try:
-        # Read the image file and encode it to Base64
-        with open('logo.png', 'rb') as image_file:
-            image_data = image_file.read()
-
-        # Encode the image to Base64
-        base64_image = base64.b64encode(image_data).decode('utf-8')
 
         # Prepare the API URL
         url = f'{BASE_URL}/playlists/{playlist_id}/images'
@@ -155,7 +149,7 @@ def add_playlist_image(playlist_id, access_token):
         }
 
         # Make the PUT request
-        response = requests.put(url, headers=headers, data=base64_image)
+        response = requests.put(url, headers=headers, json=LOGO_BASE_64)
 
         # Check the response
         if response.status_code != 202:
