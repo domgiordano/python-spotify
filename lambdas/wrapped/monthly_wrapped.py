@@ -19,8 +19,8 @@ def wrapped_chron_job(event):
             top_tracks = get_top_tracks(access_token)
             top_tracks_uri_list = [track['uri'] for track in top_tracks if 'uri' in track]
             playlist = create_playlist(user['userId'], access_token)
-            add_playlist_image(playlist['id'], access_token)
             response = add_playlist_songs(playlist['id'], top_tracks_uri_list, access_token)
+            add_playlist_image(playlist['id'], access_token)
 
         return response
     except Exception as err:
@@ -142,6 +142,8 @@ def add_playlist_image(playlist_id, access_token):
         # Prepare the API URL
         url = f'{BASE_URL}/playlists/{playlist_id}/images'
 
+        body = LOGO_BASE_64.replace('\n', '')
+
         # Set the headers
         headers = {
             'Authorization': f'Bearer {access_token}',
@@ -149,7 +151,7 @@ def add_playlist_image(playlist_id, access_token):
         }
 
         # Make the PUT request
-        response = requests.put(url, headers=headers, json=LOGO_BASE_64)
+        response = requests.put(url, body, headers=headers)
 
         # Check the response
         if response.status_code != 202:
