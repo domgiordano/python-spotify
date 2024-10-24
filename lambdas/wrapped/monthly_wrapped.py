@@ -19,6 +19,7 @@ def wrapped_chron_job(event):
             top_tracks = get_top_tracks(access_token)
             top_tracks_uri_list = [track['uri'] for track in top_tracks if 'uri' in track]
             playlist = create_playlist(user['userId'], access_token)
+            add_playlist_image(playlist['id'], access_token)
             response = add_playlist_songs(playlist['id'], top_tracks_uri_list, access_token)
 
         return response
@@ -130,6 +131,36 @@ def add_playlist_songs(playlist_id, uri_list, access_token):
             raise Exception(f"Error adding songs to playlist: {response.json()}")
 
         return "Playlist created and top songs from month added."
+    except Exception as err:
+            print(traceback.print_exc())
+            frame = inspect.currentframe()
+            raise Exception(str(err), f'{__name__}.{frame.f_code.co_name}')
+
+def add_playlist_image(playlist_id, access_token):
+    try:
+        # Read the image file and encode it to Base64
+        with open('logo.png', 'rb') as image_file:
+            image_data = image_file.read()
+
+        # Encode the image to Base64
+        base64_image = base64.b64encode(image_data).decode('utf-8')
+
+        # Prepare the API URL
+        url = f'{BASE_URL}/playlists/{playlist_id}/images'
+
+        # Set the headers
+        headers = {
+            'Authorization': f'Bearer {access_token}',
+            'Content-Type': 'image/png',
+        }
+
+        # Make the PUT request
+        response = requests.put(url, headers=headers, data=base64_image)
+
+        # Check the response
+        if response.status_code != 202:
+            raise Exception(f"Failed to upload image: {response.status_code} {response.text}")
+
     except Exception as err:
             print(traceback.print_exc())
             frame = inspect.currentframe()
