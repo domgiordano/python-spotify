@@ -151,7 +151,7 @@ def add_playlist_image(playlist_id, access_token):
         # Set the headers
         headers = {
             'Authorization': f'Bearer {access_token}',
-            'Content-Type': 'image/png',
+            'Content-Type': 'image/jpeg',
         }
 
         # Make the PUT request
