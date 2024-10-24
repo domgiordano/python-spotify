@@ -32,7 +32,7 @@ def handler(event, context):
             if (path == f"/{HANDLER}/data") and (http_method == 'POST'):
 
                 event_body = json.loads(body)
-                required_fields = {"email", "refreshToken", "active"}
+                required_fields = {"email", "userId", "refreshToken", "active"}
                 optional_fields = {"topSongIdsLastMonth", "topArtistIdsLastMonth", "topGenresLastMonth",
                                    "topSongIdsTwoMonthsAgo", "topArtistIdsTwoMonthsAgo", "topGenresTwoMonthsAgo"}
 

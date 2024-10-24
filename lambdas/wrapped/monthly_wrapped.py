@@ -15,10 +15,10 @@ def wrapped_chron_job(event):
         response = "CHRON JOB!"
         wrapped_users = get_active_wrapped_users()
         for user in wrapped_users:
-            access_token = get_access_token(user['refresh_token'])
+            access_token = get_access_token(user['refreshToken'])
             top_tracks = get_top_tracks(access_token)
             top_tracks_uri_list = [track['uri'] for track in top_tracks if 'uri' in track]
-            playlist = create_playlist(user['user_id'], access_token)
+            playlist = create_playlist(user['userId'], access_token)
             response = add_playlist_songs(playlist['id'], top_tracks_uri_list, access_token)
 
         return response
