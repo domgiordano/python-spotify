@@ -1,15 +1,22 @@
 import json
 import traceback
+import inspect
 
 from lambdas.common.utility_helpers import build_successful_handler_response, is_called_from_api, build_error_handler_response, validate_input
 from lambdas.common.errors import WrappednError
 from wrapped_data import update_wrapped_data, get_wrapped_data
+from monthly_wrapped import wrapped_chron_job
 
 HANDLER = 'wrapped'
 
 
 def handler(event, context):
     try:
+
+        # Monthly Wrapped Chron Job
+        if 'body' not in event and event.get("source") == 'aws.events':
+            return build_successful_handler_response(wrapped_chron_job(event), False)
+
         is_api = is_called_from_api(event)
 
         path = event.get("path").lower()
