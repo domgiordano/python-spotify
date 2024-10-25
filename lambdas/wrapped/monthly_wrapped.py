@@ -4,6 +4,7 @@ import traceback
 import inspect
 from datetime import datetime, timedelta, timezone
 import time
+import asyncio
 
 from lambdas.common.ssm_helpers import SPOTIFY_CLIENT_SECRET, SPOTIFY_CLIENT_ID
 from lambdas.common.constants import WRAPPED_TABLE_NAME, LOGO_BASE_64
@@ -11,22 +12,68 @@ from lambdas.common.dynamo_helpers import full_table_scan, update_table_item
 
 BASE_URL = "https://api.spotify.com/v1"
 
-def wrapped_chron_job(event):
+async def wrapped_chron_job(event):
     try:
         response = []
         wrapped_users = get_active_wrapped_users()
         for user in wrapped_users:
 
             access_token = get_access_token(user['refreshToken'])
-            top_tracks = get_top_tracks(access_token)
-            top_tracks_uri_list = [track['uri'] for track in top_tracks if 'uri' in track]
+
+            tasks = [
+                asyncio.create_task(get_top_tracks('short_term', access_token)),
+                asyncio.create_task(get_top_tracks('medium_term', access_token)),
+                asyncio.create_task(get_top_tracks('long_term', access_token)),
+                asyncio.create_task(get_top_artists('short_term', access_token)),
+                asyncio.create_task(get_top_artists('medium_term', access_token)),
+                asyncio.create_task(get_top_artists('long_term', access_token)),
+            ]
+
+            async_res = await asyncio.gather(*tasks)
+            top_tracks_short, top_tracks_med, top_tracks_long, top_artists_short, top_artists_med, top_artists_long = async_res
+
+            # Get Tracks URI List
+            top_tracks_short_uri_list = [track['uri'] for track in top_tracks_short if 'uri' in track]
+            # Get Track ID List
+            top_tracks_short_id_list = [track['id'] for track in top_tracks_short if 'id' in track]
+            top_tracks_med_id_list = [track['id'] for track in top_tracks_med if 'id' in track]
+            top_tracks_long_id_list = [track['id'] for track in top_tracks_long if 'id' in track]
+
             playlist = create_playlist(user['userId'], access_token)
-            add_playlist_songs(playlist['id'], top_tracks_uri_list, access_token)
+            add_playlist_songs(playlist['id'], top_tracks_short_uri_list, access_token)
             time.sleep(5)
             add_playlist_image(playlist['id'], access_token)
 
+            # Get top Genres from Artists
+            top_genres_short_list = get_top_genres(top_artists_short)
+            top_genres_med_list = get_top_genres(top_artists_med)
+            top_genres_long_list = get_top_genres(top_artists_long)
+
+            # Get Artists ID List
+            top_artists_short_id_list = [artist['id'] for artist in top_artists_short if 'id' in artist]
+            top_artists_med_id_list = [artist['id'] for artist in top_artists_med if 'id' in artist]
+            top_artists_long_id_list = [artist['id'] for artist in top_artists_long if 'id' in artist]
+
+            # Create Dicts
+            top_tracks_last_month = {
+                "short_term": top_tracks_short_id_list,
+                "med_term": top_tracks_med_id_list,
+                "long_term": top_tracks_long_id_list
+            }
+
+            top_artists_last_month = {
+                "short_term": top_artists_short_id_list,
+                "med_term": top_artists_med_id_list,
+                "long_term": top_artists_long_id_list
+            }
+
+            top_genres_last_month = {
+                "short_term": top_genres_short_list,
+                "med_term": top_genres_med_list,
+                "long_term": top_genres_long_list
+            }
             # Update the User
-            update_user_table_entry(user)
+            update_user_table_entry(user, top_tracks_last_month, top_artists_last_month, top_genres_last_month)
 
             response.append(user['email'])
 
@@ -68,9 +115,9 @@ def get_access_token(refresh_token):
         frame = inspect.currentframe()
         raise Exception(str(err), f'{__name__}.{frame.f_code.co_name}')
 
-def get_top_tracks(access_token):
+async def get_top_tracks(term, access_token):
     try:
-        url = f"{BASE_URL}/me/top/tracks?limit=25&time_range=short_term"
+        url = f"{BASE_URL}/me/top/tracks?limit=25&time_range={term}"
 
         # Set up the headers
         headers = {
@@ -91,6 +138,42 @@ def get_top_tracks(access_token):
             print(traceback.print_exc())
             frame = inspect.currentframe()
             raise Exception(str(err), f'{__name__}.{frame.f_code.co_name}')
+
+async def get_top_artists(term, access_token):
+    try:
+        url = f"{BASE_URL}/me/top/artists?limit=25&time_range={term}"
+
+        # Set up the headers
+        headers = {
+            'Authorization': f'Bearer {access_token}',
+            'Content-Type': 'application/json'
+        }
+
+        # Make the request
+        response = requests.get(url, headers=headers)
+        response_data = response.json()
+
+        # Check for errors
+        if response.status_code != 200:
+            raise Exception(f"Error fetching top tracks: {response_data}")
+
+        return response_data['items']  # Return the list of top tracks
+    except Exception as err:
+            print(traceback.print_exc())
+            frame = inspect.currentframe()
+            raise Exception(str(err), f'{__name__}.{frame.f_code.co_name}')
+
+def get_top_genres(artists):
+    # Collect all genres from the list of artists
+    genres = []
+    for artist in artists:
+        genres.extend(artist.get('genres', []))  # Use .get to avoid errors if 'genres' key is missing
+
+    # Count the occurrences of each genre
+    top_genres = {}
+    for genre in genres:
+        top_genres[genre] = top_genres.get(genre, 0) + 1
+    return top_genres
 
 def create_playlist(user_id, access_token):
     try:
@@ -171,8 +254,17 @@ def add_playlist_image(playlist_id, access_token):
             raise Exception(str(err), f'{__name__}.{frame.f_code.co_name}')
 
 
-def update_user_table_entry(user):
-    # TODO: Update Last months and this months songs/artists/genres for the page
+def update_user_table_entry(user, top_tracks_last_month, top_artists_last_month, top_genres_last_month):
+    # Tracks
+    user['topTrackIdsTwoMonthsAgo'] = user['topTrackIdsLastMonth']
+    user['topTrackIdsLastMonth'] = top_tracks_last_month
+    # Artists
+    user['topArtistIdsTwoMonthsAgo'] = user['topArtistIdsLastMonth']
+    user['topArtistIdsLastMonth'] = top_artists_last_month
+    # Genres
+    user['topGenresTwoMonthsAgo'] = user['topGenresLastMonth']
+    user['topGenresLastMonth'] = top_genres_last_month
+    # Time Stamp
     user['updatedAt'] = get_time_stamp()
     update_table_item(WRAPPED_TABLE_NAME, user)
 
