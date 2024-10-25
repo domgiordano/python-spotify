@@ -3,6 +3,7 @@ import base64
 import traceback
 import inspect
 from datetime import datetime, timedelta, timezone
+import time
 
 from lambdas.common.ssm_helpers import SPOTIFY_CLIENT_SECRET, SPOTIFY_CLIENT_ID
 from lambdas.common.constants import WRAPPED_TABLE_NAME, LOGO_BASE_64
@@ -15,15 +16,17 @@ def wrapped_chron_job(event):
         response = []
         wrapped_users = get_active_wrapped_users()
         for user in wrapped_users:
-            access_token, refresh_token = get_access_token(user['refreshToken'])
+
+            access_token = get_access_token(user['refreshToken'])
             top_tracks = get_top_tracks(access_token)
             top_tracks_uri_list = [track['uri'] for track in top_tracks if 'uri' in track]
             playlist = create_playlist(user['userId'], access_token)
             add_playlist_songs(playlist['id'], top_tracks_uri_list, access_token)
+            time.sleep(5)
             add_playlist_image(playlist['id'], access_token)
 
             # Update the User
-            update_user_table_entry(user, refresh_token)
+            update_user_table_entry(user)
 
             response.append(user['email'])
 
@@ -59,7 +62,7 @@ def get_access_token(refresh_token):
         if response.status_code != 200:
             raise Exception(f"Error refreshing token: {response_data}")
 
-        return response_data['access_token'], response_data['refresh_token']
+        return response_data['access_token']
     except Exception as err:
         print(traceback.print_exc())
         frame = inspect.currentframe()
@@ -168,8 +171,7 @@ def add_playlist_image(playlist_id, access_token):
             raise Exception(str(err), f'{__name__}.{frame.f_code.co_name}')
 
 
-def update_user_table_entry(user, refresh_token):
-    user['refreshToken'] = refresh_token
+def update_user_table_entry(user):
     # TODO: Update Last months and this months songs/artists/genres for the page
     user['updatedAt'] = get_time_stamp()
     update_table_item(WRAPPED_TABLE_NAME, user)
