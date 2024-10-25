@@ -15,7 +15,8 @@ def handler(event, context):
 
         # Monthly Wrapped Chron Job
         if 'body' not in event and event.get("source") == 'aws.events':
-            return build_successful_handler_response(wrapped_chron_job(event), False)
+            users_downloaded = wrapped_chron_job(event)
+            return build_successful_handler_response({"usersDownloaded": users_downloaded}, False)
 
         is_api = is_called_from_api(event)
 

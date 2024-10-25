@@ -12,18 +12,20 @@ BASE_URL = "https://api.spotify.com/v1"
 
 def wrapped_chron_job(event):
     try:
-        response = "CHRON JOB!"
+        response = []
         wrapped_users = get_active_wrapped_users()
         for user in wrapped_users:
             access_token, refresh_token = get_access_token(user['refreshToken'])
             top_tracks = get_top_tracks(access_token)
             top_tracks_uri_list = [track['uri'] for track in top_tracks if 'uri' in track]
             playlist = create_playlist(user['userId'], access_token)
-            response = add_playlist_songs(playlist['id'], top_tracks_uri_list, access_token)
+            add_playlist_songs(playlist['id'], top_tracks_uri_list, access_token)
             add_playlist_image(playlist['id'], access_token)
 
             # Update the User
             update_user_table_entry(user, refresh_token)
+
+            response.append(user['email'])
 
         return response
     except Exception as err:
@@ -133,7 +135,7 @@ def add_playlist_songs(playlist_id, uri_list, access_token):
         if response.status_code != 201:
             raise Exception(f"Error adding songs to playlist: {response.json()}")
 
-        return "Playlist created and top songs from month added."
+        return response.json()
     except Exception as err:
             print(traceback.print_exc())
             frame = inspect.currentframe()
