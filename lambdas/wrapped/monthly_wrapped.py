@@ -256,8 +256,8 @@ def add_playlist_image(playlist_id, access_token):
 
 def update_user_table_entry(user, top_tracks_last_month, top_artists_last_month, top_genres_last_month):
     # Tracks
-    user['topTrackIdsTwoMonthsAgo'] = user['topTrackIdsLastMonth']
-    user['topTrackIdsLastMonth'] = top_tracks_last_month
+    user['topSongIdsTwoMonthsAgo'] = user['topSongIdsLastMonth']
+    user['topSongIdsLastMonth'] = top_tracks_last_month
     # Artists
     user['topArtistIdsTwoMonthsAgo'] = user['topArtistIdsLastMonth']
     user['topArtistIdsLastMonth'] = top_artists_last_month
