@@ -77,6 +77,8 @@ async def wrapped_chron_job(event):
 
             response.append(user['email'])
 
+            print(f"---------- USER ADDED: {user['email']} ----------")
+
         return response
     except Exception as err:
         print(traceback.print_exc())
@@ -178,9 +180,9 @@ def get_top_genres(artists):
 def create_playlist(user_id, access_token):
     try:
         url = f"{BASE_URL}/users/{user_id}/playlists"
-        last_month = get_last_month_name()
+        last_month, this_year = get_last_month_name()
         body = {
-            "name": f"Xomify {last_month} Monthly Wrapped",
+            "name": f"Xomify {last_month}'{this_year}",
             "description": f"Your Top 25 songs for {last_month} - Created by xomify.com",
             "public": True
         }
@@ -286,7 +288,10 @@ def get_last_month_name():
         # Get the month name of the previous month
         last_month_name = last_day_of_previous_month.strftime("%B")
 
-        return last_month_name
+        # Get Current Year
+        current_year = str(datetime.datetime.now().year)[2:]
+
+        return last_month_name, current_year
     except Exception as err:
             print(traceback.print_exc())
             frame = inspect.currentframe()
