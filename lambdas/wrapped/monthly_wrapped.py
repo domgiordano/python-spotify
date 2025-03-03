@@ -289,7 +289,7 @@ def get_last_month_name():
         last_month_name = last_day_of_previous_month.strftime("%B")
 
         # Get Current Year
-        current_year = str(datetime.datetime.now().year)[2:]
+        current_year = str(current_date.year)[2:]
 
         return last_month_name, current_year
     except Exception as err:
