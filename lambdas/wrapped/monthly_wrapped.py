@@ -39,10 +39,30 @@ async def wrapped_chron_job(event):
             top_tracks_med_id_list = [track['id'] for track in top_tracks_med if 'id' in track]
             top_tracks_long_id_list = [track['id'] for track in top_tracks_long if 'id' in track]
 
-            playlist = create_playlist(user['userId'], access_token)
+            # Create Playlists
+            last_month, last_month_number, this_year = get_last_month_data()
+            playlist = create_monthly_playlist(user['userId'], access_token, last_month, this_year)
             add_playlist_songs(playlist['id'], top_tracks_short_uri_list, access_token)
             time.sleep(5)
             add_playlist_image(playlist['id'], access_token)
+
+            if last_month_number == 6:
+                print("------------- CREATING 1/2 YEAR IN REVIEW -------------")
+                # Get Tracks URI List
+                top_tracks_med_uri_list = [track['uri'] for track in top_tracks_med if 'uri' in track]
+                playlist = create_first_half_of_year_playlist(user['userId'], access_token, this_year)
+                add_playlist_songs(playlist['id'], top_tracks_med_uri_list, access_token)
+                time.sleep(5)
+                add_playlist_image(playlist['id'], access_token)
+
+            if last_month_number == 12:
+                print("------------- CREATING FULL YEAR IN REVIEW -------------")
+                # Get Tracks URI List
+                top_tracks_long_uri_list = [track['uri'] for track in top_tracks_long if 'uri' in track]
+                playlist = create_full_year_playlist(user['userId'], access_token, this_year)
+                add_playlist_songs(playlist['id'], top_tracks_long_uri_list, access_token)
+                time.sleep(5)
+                add_playlist_image(playlist['id'], access_token)
 
             # Get top Genres from Artists
             top_genres_short_list = get_top_genres(top_artists_short)
@@ -177,13 +197,64 @@ def get_top_genres(artists):
         top_genres[genre] = top_genres.get(genre, 0) + 1
     return top_genres
 
-def create_playlist(user_id, access_token):
+def create_monthly_playlist(user_id, access_token, last_month, this_year):
     try:
         url = f"{BASE_URL}/users/{user_id}/playlists"
-        last_month, this_year = get_last_month_name()
         body = {
             "name": f"Xomify {last_month}'{this_year}",
             "description": f"Your Top 25 songs for {last_month} - Created by xomify.com",
+            "public": True
+        }
+
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json"
+        }
+
+        response = requests.post(url, json=body, headers=headers)
+
+        # Check for errors
+        if response.status_code != 201:
+            raise Exception(f"Error creating playlist: {response.json()}")
+
+        return response.json()  # Return the response as a JSON object
+    except Exception as err:
+            print(traceback.print_exc())
+            frame = inspect.currentframe()
+            raise Exception(str(err), f'{__name__}.{frame.f_code.co_name}')
+    
+def create_first_half_of_year_playlist(user_id, access_token, this_year):
+    try:
+        url = f"{BASE_URL}/users/{user_id}/playlists"
+        body = {
+            "name": f"Xomify First Half '{this_year}",
+            "description": f"Your Top 25 songs for the First 6 months of '{this_year} - Created by xomify.com",
+            "public": True
+        }
+
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json"
+        }
+
+        response = requests.post(url, json=body, headers=headers)
+
+        # Check for errors
+        if response.status_code != 201:
+            raise Exception(f"Error creating playlist: {response.json()}")
+
+        return response.json()  # Return the response as a JSON object
+    except Exception as err:
+            print(traceback.print_exc())
+            frame = inspect.currentframe()
+            raise Exception(str(err), f'{__name__}.{frame.f_code.co_name}')
+    
+def create_full_year_playlist(user_id, access_token, this_year):
+    try:
+        url = f"{BASE_URL}/users/{user_id}/playlists"
+        body = {
+            "name": f"Xomify 20{this_year}",
+            "description": f"Your Top 25 songs for 20{this_year} - Created by xomify.com",
             "public": True
         }
 
@@ -229,7 +300,7 @@ def add_playlist_songs(playlist_id, uri_list, access_token):
             frame = inspect.currentframe()
             raise Exception(str(err), f'{__name__}.{frame.f_code.co_name}')
 
-def add_playlist_image(playlist_id, access_token):
+def add_playlist_image(playlist_id, access_token, retried=False):
     try:
 
         # Prepare the API URL
@@ -248,7 +319,11 @@ def add_playlist_image(playlist_id, access_token):
 
         # Check the response
         if response.status_code != 202:
-            raise Exception(f"Failed to upload image: {response.status_code} {response.text}")
+            # Retry once
+            if not retried:
+                 add_playlist_image(playlist_id, access_token, True)
+            else:
+                raise Exception(f"Failed to upload image: {response.status_code} {response.text}")
 
     except Exception as err:
             print(traceback.print_exc())
@@ -274,7 +349,7 @@ def get_time_stamp():
     return datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
 
 
-def get_last_month_name():
+def get_last_month_data():
     try:
         # Get the current date
         current_date = datetime.now()
@@ -288,10 +363,14 @@ def get_last_month_name():
         # Get the month name of the previous month
         last_month_name = last_day_of_previous_month.strftime("%B")
 
+        # Get Month Number of previous month
+        last_month_number = last_day_of_previous_month.year
+
         # Get Current Year
         current_year = str(current_date.year)[2:]
 
-        return last_month_name, current_year
+
+        return last_month_name, last_month_number, current_year
     except Exception as err:
             print(traceback.print_exc())
             frame = inspect.currentframe()
