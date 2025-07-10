@@ -364,7 +364,7 @@ def get_last_month_data():
         last_month_name = last_day_of_previous_month.strftime("%B")
 
         # Get Month Number of previous month
-        last_month_number = last_day_of_previous_month.year
+        last_month_number = last_day_of_previous_month.month
 
         # Get Current Year
         current_year = str(current_date.year)[2:]
