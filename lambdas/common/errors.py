@@ -39,3 +39,6 @@ class WrappednError(BaseXomifyException):
     def __init__(self, error, handler, function, status=500, base="💥 Error in Xomify Wrapped 💥"):
         super().__init__(error, handler, function, status, base)
 
+class ReleaseRadarError(BaseXomifyException):
+    def __init__(self, error, handler, function, status=500, base="💥 Error in Xomify Release Radar 💥"):
+        super().__init__(error, handler, function, status, base)
