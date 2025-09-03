@@ -7,7 +7,7 @@ import time
 import asyncio
 
 from lambdas.common.ssm_helpers import SPOTIFY_CLIENT_SECRET, SPOTIFY_CLIENT_ID
-from lambdas.common.constants import WRAPPED_TABLE_NAME, LOGO_BASE_64
+from lambdas.common.constants import WRAPPED_TABLE_NAME, LOGO_BASE_64, BLACK_2025_BASE_64
 from lambdas.common.dynamo_helpers import full_table_scan, update_table_item
 
 BASE_URL = "https://api.spotify.com/v1"
@@ -44,7 +44,7 @@ async def wrapped_chron_job(event):
             playlist = create_monthly_playlist(user['userId'], access_token, last_month, this_year)
             add_playlist_songs(playlist['id'], top_tracks_short_uri_list, access_token)
             time.sleep(5)
-            add_playlist_image(playlist['id'], access_token)
+            add_playlist_image(playlist['id'], access_token, LOGO_BASE_64)
 
             if last_month_number == 6:
                 print("------------- CREATING 1/2 YEAR IN REVIEW -------------")
@@ -53,7 +53,7 @@ async def wrapped_chron_job(event):
                 playlist = create_first_half_of_year_playlist(user['userId'], access_token, this_year)
                 add_playlist_songs(playlist['id'], top_tracks_med_uri_list, access_token)
                 time.sleep(5)
-                add_playlist_image(playlist['id'], access_token)
+                add_playlist_image(playlist['id'], access_token, LOGO_BASE_64)
 
             if last_month_number == 12:
                 print("------------- CREATING FULL YEAR IN REVIEW -------------")
@@ -62,7 +62,7 @@ async def wrapped_chron_job(event):
                 playlist = create_full_year_playlist(user['userId'], access_token, this_year)
                 add_playlist_songs(playlist['id'], top_tracks_long_uri_list, access_token)
                 time.sleep(5)
-                add_playlist_image(playlist['id'], access_token)
+                add_playlist_image(playlist['id'], access_token, BLACK_2025_BASE_64)
 
             # Get top Genres from Artists
             top_genres_short_list = get_top_genres(top_artists_short)
@@ -300,13 +300,13 @@ def add_playlist_songs(playlist_id, uri_list, access_token):
             frame = inspect.currentframe()
             raise Exception(str(err), f'{__name__}.{frame.f_code.co_name}')
 
-def add_playlist_image(playlist_id, access_token, retried=False):
+def add_playlist_image(playlist_id, access_token, image, retried=False):
     try:
 
         # Prepare the API URL
         url = f'{BASE_URL}/playlists/{playlist_id}/images'
 
-        body = LOGO_BASE_64.replace('\n', '')
+        body = image.replace('\n', '')
 
         # Set the headers
         headers = {
@@ -321,7 +321,7 @@ def add_playlist_image(playlist_id, access_token, retried=False):
         if response.status_code != 202:
             # Retry once
             if not retried:
-                 add_playlist_image(playlist_id, access_token, True)
+                 add_playlist_image(playlist_id, access_token, image, True)
             else:
                 raise Exception(f"Failed to upload image: {response.status_code} {response.text}")
 
