@@ -26,13 +26,26 @@ async def release_radar_chron_job(event):
             tasks = [get_artist_latest_release(id, access_token) for id in artist_ids]
 
             # Get all ids of latest releases for the week
-            artist_latest_release_ids = await asyncio.gather(*tasks)
-            print(f"Latest Release IDs: {artist_latest_release_ids}")
-            print(len(artist_latest_release_ids))
-            # Remove None values
-            filtered_release_ids = list(filter(None, artist_latest_release_ids))
-            print(f"Filtered Release IDs Found: {filtered_release_ids}")
-            print(len(filtered_release_ids))
+            artist_latest_release_uris = await asyncio.gather(*tasks)
+            print(f"Latest Release IDs: {artist_latest_release_uris}")
+            print(len(artist_latest_release_uris))
+            # Remove None values - split lists
+            tracks_uris, albums_uris = __split_spotify_uris(artist_latest_release_uris)
+            print(f"Latest Release Albums: {albums_uris}")
+            print(len(albums_uris))
+            print(f"Latest Release Tracks: {tracks_uris}")
+            print(len(tracks_uris))
+
+            # Get all tracks for new albums
+            tasks = [get_album_tracks(uri, access_token) for uri in albums_uris]
+            all_tracks_from_albums_uris = await asyncio.gather(*tasks)
+            flattened_uris = [item for sublist in all_tracks_from_albums_uris for item in sublist]
+            print(f"All Tracks from Albums: {flattened_uris}")
+            print(len(flattened_uris))
+            tracks_uris.extend(flattened_uris)
+            # Remove Duplicates
+            final_tracks_uris = list(set(tracks_uris))
+            print(f"All Tracks total: {len(final_tracks_uris)}")
 
             playlist_id = user.get('releaseRadarId', None)
             if not playlist_id:
@@ -52,7 +65,7 @@ async def release_radar_chron_job(event):
                 delete_playlist_songs(playlist_id, access_token)
                 print("Playlist songs cleared.")
 
-            add_playlist_songs(playlist_id, filtered_release_ids, access_token)
+            add_playlist_songs(playlist_id, final_tracks_uris, access_token)
             print("Playlist songs added.")
             
             
@@ -65,6 +78,10 @@ async def release_radar_chron_job(event):
         print(f"Release Radar Chron Job: {err}")
         raise Exception(f"Release Radar Chron Job: {err}")
 
+def __split_spotify_uris(uris):
+    tracks = [id for id in uris if id and id.startswith("spotify:track:")]
+    albums = [id for id in uris if id and id.startswith("spotify:album:")]
+    return tracks, albums
 
 def get_active_wrapped_users():
      try:
@@ -100,16 +117,43 @@ def get_access_token(refresh_token):
         print(f"Get Access Token: {err}")
         raise Exception(f"Get Access Token: {err}")
 
+def __get_headers(access_token: str):
+    return {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json'
+    }
+async def get_album_tracks(album_uri: str, access_token: str):
+    try:
+
+        track_uris = []
+        
+        # Set up the headers
+        headers = __get_headers(access_token)
+        album_id = album_uri.split(":")[2]
+        url = f"{BASE_URL}/albums/{album_id}/tracks"
+
+        # Make the request
+        response = requests.get(url, headers=headers)
+        response_data = response.json()
+
+        # Check for errors
+        if response.status_code != 200:
+            raise Exception(f"Error fetching Album tracks: {response_data}")
+            
+        track_uris = [track['uri'] for track in response_data['items']]
+        
+        return track_uris
+    except Exception as err:
+        print(f"Get Album Tracks: {err}")
+        raise Exception(f"Get Album Tracks: {err}")
+    
 async def get_followed_artists(access_token):
     try:
 
         artist_ids = []
         
         # Set up the headers
-        headers = {
-            'Authorization': f'Bearer {access_token}',
-            'Content-Type': 'application/json'
-        }
+        headers = __get_headers(access_token)
         url = f"{BASE_URL}/me/following?type=artist&limit=50"
         more_artists = True
         while(more_artists):
@@ -139,10 +183,7 @@ async def get_artist_latest_release(artist_id, access_token):
         url = f"{BASE_URL}/artists/{artist_id}/albums?limit=1&offset=0"
 
         # Set up the headers
-        headers = {
-            'Authorization': f'Bearer {access_token}',
-            'Content-Type': 'application/json'
-        }
+        headers = __get_headers(access_token)
 
         # Make the request
         response = requests.get(url, headers=headers)
@@ -204,47 +245,65 @@ def create_release_radar_playlist(user_id, access_token):
         raise Exception(f"Create Release Radar Playlist: {err}")
 def delete_playlist_songs(playlist_id, access_token):
     try:
-        url = f"{BASE_URL}/playlists/{playlist_id}/tracks"
+        headers = __get_headers(access_token)
 
-        body = {
-            "uris": []
-        }
+        # Step 1: Fetch all track URIs in the playlist
+        tracks_to_remove = []
+        limit = 100
+        offset = 0
 
-        headers = {
-            "Authorization": f"Bearer {access_token}",
-            "Content-Type": "application/json"
-        }
+        while True:
+            url = f"{BASE_URL}/playlists/{playlist_id}/tracks?limit={limit}&offset={offset}"
+            resp = requests.get(url, headers=headers).json()
+            items = resp.get("items", [])
+            if not items:
+                break
+            tracks_to_remove.extend([{"uri": item["track"]["uri"]} for item in items])
+            offset += len(items)
 
-        response = requests.post(url, json=body, headers=headers)
+        # Step 2: Delete tracks in batches of 100
+        for i in range(0, len(tracks_to_remove), 100):
+            batch = tracks_to_remove[i:i+100]
+            payload = {"tracks": batch}
+            del_url = f"{BASE_URL}/playlists/{playlist_id}/tracks"
+            resp = requests.delete(del_url, headers=headers, json=payload)
+            if resp.status_code not in (200, 201):
+                print("Error deleting batch:", resp.status_code, resp.text)
+                return
 
-        # Check for errors
-        if response.status_code != 201:
-            raise Exception(f"Error Deleting songs to playlist: {response.json()}")
-
+        print("Tracks removed successfully.")
     except Exception as err:
         print(f"Delete Playlist Songs: {err}")
         raise Exception(f"Delete Playlist Songs: {err}")
     
 def add_playlist_songs(playlist_id, uri_list, access_token):
     try:
+
+        # Define batch size
+        batch_size = 100
+
+        headers = __get_headers(access_token)
         url = f"{BASE_URL}/playlists/{playlist_id}/tracks"
+        # Iterate through track URIs in batches
+        for i in range(0, len(uri_list), batch_size):
+            batch_uris = uri_list[i:i + batch_size]
 
-        body = {
-            "uris": uri_list
-        }
+            headers = {
+                "Authorization": f"Bearer {access_token}",
+                "Content-Type": "application/json"
+            }
+            body = {
+                "uris": batch_uris
+            }
 
-        headers = {
-            "Authorization": f"Bearer {access_token}",
-            "Content-Type": "application/json"
-        }
+            response = requests.post(url, json=body, headers=headers)
 
-        response = requests.post(url, json=body, headers=headers)
+            if response.status_code == 201:
+                print(f"Successfully added {len(batch_uris)} tracks.")
+            else:
+                raise Exception(f"Error adding songs to playlist: {response.json()}")
 
-        # Check for errors
-        if response.status_code != 201:
-            raise Exception(f"Error adding songs to playlist: {response.json()}")
-
-        return response.json()
+        print("Tracks Added Successfully.")
     except Exception as err:
         print(f"Add Playlist Songs: {err}")
         raise Exception(f"Add Playlist Songs: {err}")
