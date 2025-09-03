@@ -36,7 +36,8 @@ def handler(event, context):
                 event_body = json.loads(body)
                 required_fields = {"email", "userId", "refreshToken", "active"}
                 optional_fields = {"topSongIdsLastMonth", "topArtistIdsLastMonth", "topGenresLastMonth",
-                                   "topSongIdsTwoMonthsAgo", "topArtistIdsTwoMonthsAgo", "topGenresTwoMonthsAgo"}
+                                   "topSongIdsTwoMonthsAgo", "topArtistIdsTwoMonthsAgo", 
+                                   "topGenresTwoMonthsAgo", "releaseRadarId"}
 
                 if not validate_input(event_body, required_fields, optional_fields):
                     raise Exception("Invalid User Input - missing required field or contains extra field.")
