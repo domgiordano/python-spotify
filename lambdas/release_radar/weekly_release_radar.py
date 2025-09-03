@@ -20,27 +20,37 @@ async def release_radar_chron_job(event):
 
             access_token = get_access_token(user['refreshToken'])
 
-            artist_ids = asyncio.run(get_followed_artists(access_token))
+            artist_ids = await get_followed_artists(access_token)
+            print(f"Artist IDs found: {len(artist_ids)}")
             
-            tasks = [asyncio.create_task(get_artist_latest_release(id, access_token)) for id in artist_ids]
+            tasks = [get_artist_latest_release(id, access_token) for id in artist_ids]
 
             # Get all ids of latest releases for the week
             artist_latest_release_ids = await asyncio.gather(*tasks)
             # Remove None values
-            filtered_release_ids = list(filter(None, artist_latest_release_ids)) 
+            filtered_release_ids = list(filter(None, artist_latest_release_ids))
+            print(f"Filtered Release IDs Found: {filtered_release_ids}")
+
             playlist_id = user.get('releaseRadarId', None)
             if not playlist_id:
+                print("No Playlist ID found yet.")
                 playlist_id = create_release_radar_playlist(user['userId'], access_token)
+                print(f"Playlist created with ID: {playlist_id}")
                 time.sleep(3)
                 add_playlist_image(playlist_id, access_token)
+                print("Playlist Image added.")
                 time.sleep(3)
                 # Update the User
                 update_user_table_entry(user, playlist_id)
+                print("User Table updated with playlist id.")
             else:
+                print(f"Playlist ID found: {playlist_id}")
                 # Erase Playlist songs
                 delete_playlist_songs(playlist_id, access_token)
+                print("Playlist songs cleared.")
 
             add_playlist_songs(playlist_id, filtered_release_ids, access_token)
+            print("Playlist songs added.")
             
             
             response.append(user['email'])
@@ -106,9 +116,9 @@ async def get_followed_artists(access_token):
             if response.status_code != 200:
                 raise Exception(f"Error fetching followed artists: {response_data}")
             
-            ids = [artist['id'] for artist in response['items']]
+            ids = [artist['id'] for artist in response_data['items']]
             artist_ids.append(ids)
-            if not response['next']:
+            if not response_data['next']:
                  more_artists = False
         
 
@@ -136,8 +146,8 @@ async def get_artist_latest_release(artist_id, access_token):
         if response.status_code != 200:
             raise Exception(f"Error fetching artist latest release: {response_data}")
         
-        if __is_within_a_week(response['items'][0]['release_date']):
-            return response['items'][0]['uri']
+        if __is_within_a_week(response_data['items'][0]['release_date']):
+            return response_data['items'][0]['uri']
         else:
              return None
 
