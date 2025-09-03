@@ -27,9 +27,12 @@ async def release_radar_chron_job(event):
 
             # Get all ids of latest releases for the week
             artist_latest_release_ids = await asyncio.gather(*tasks)
+            print(f"Latest Release IDs: {artist_latest_release_ids}")
+            print(len(artist_latest_release_ids))
             # Remove None values
             filtered_release_ids = list(filter(None, artist_latest_release_ids))
             print(f"Filtered Release IDs Found: {filtered_release_ids}")
+            print(len(filtered_release_ids))
 
             playlist_id = user.get('releaseRadarId', None)
             if not playlist_id:
@@ -59,15 +62,18 @@ async def release_radar_chron_job(event):
 
         return response
     except Exception as err:
-        print(traceback.print_exc())
-        frame = inspect.currentframe()
-        raise Exception(str(err), f'{__name__}.{frame.f_code.co_name}')
+        print(f"Release Radar Chron Job: {err}")
+        raise Exception(f"Release Radar Chron Job: {err}")
 
 
 def get_active_wrapped_users():
-     table_values = full_table_scan(WRAPPED_TABLE_NAME)
-     table_values[:] = [item for item in table_values if item['active']]
-     return table_values
+     try:
+        table_values = full_table_scan(WRAPPED_TABLE_NAME)
+        table_values[:] = [item for item in table_values if item['active']]
+        return table_values
+     except Exception as err:
+        print(f"Get Active Wrapped Users: {err}")
+        raise Exception(f"Get Active Wrapped Users: {err}")
 
 def get_access_token(refresh_token):
     try:
@@ -91,23 +97,23 @@ def get_access_token(refresh_token):
 
         return response_data['access_token']
     except Exception as err:
-        print(traceback.print_exc())
-        frame = inspect.currentframe()
-        raise Exception(str(err), f'{__name__}.{frame.f_code.co_name}')
+        print(f"Get Access Token: {err}")
+        raise Exception(f"Get Access Token: {err}")
 
 async def get_followed_artists(access_token):
     try:
 
         artist_ids = []
-        url = f"{BASE_URL}/me/following?type=artist&limit=50"
-
+        
         # Set up the headers
         headers = {
             'Authorization': f'Bearer {access_token}',
             'Content-Type': 'application/json'
         }
+        url = f"{BASE_URL}/me/following?type=artist&limit=50"
         more_artists = True
         while(more_artists):
+            
             # Make the request
             response = requests.get(url, headers=headers)
             response_data = response.json()
@@ -116,21 +122,21 @@ async def get_followed_artists(access_token):
             if response.status_code != 200:
                 raise Exception(f"Error fetching followed artists: {response_data}")
             
-            ids = [artist['id'] for artist in response_data['items']]
-            artist_ids.append(ids)
-            if not response_data['next']:
-                 more_artists = False
+            ids = [artist['id'] for artist in response_data['artists']['items']]
+            artist_ids.extend(ids)
+            if not response_data['artists']['next']:
+                more_artists = False
+            else:
+                url = response_data['artists']['next']
         
-
         return artist_ids
     except Exception as err:
-            print(traceback.print_exc())
-            frame = inspect.currentframe()
-            raise Exception(str(err), f'{__name__}.{frame.f_code.co_name}')
+        print(f"Get Followed Artists: {err}")
+        raise Exception(f"Get Followed Artists: {err}")
 
 async def get_artist_latest_release(artist_id, access_token):
     try:
-        url = f"{BASE_URL}/me/top/artists/{artist_id}/albums?limit=1&offset=0"
+        url = f"{BASE_URL}/artists/{artist_id}/albums?limit=1&offset=0"
 
         # Set up the headers
         headers = {
@@ -143,8 +149,12 @@ async def get_artist_latest_release(artist_id, access_token):
         response_data = response.json()
 
         # Check for errors
+        if response.status_code == 429:
+            print("RATE LIMIT REACHED")
+            time.sleep(response.headers['retry-after'] + 2)
+            return await get_artist_latest_release(artist_id, access_token)
         if response.status_code != 200:
-            raise Exception(f"Error fetching artist latest release: {response_data}")
+            raise Exception(f"Error fetching artist latest release: {response}")
         
         if __is_within_a_week(response_data['items'][0]['release_date']):
             return response_data['items'][0]['uri']
@@ -152,18 +162,21 @@ async def get_artist_latest_release(artist_id, access_token):
              return None
 
     except Exception as err:
-            print(traceback.print_exc())
-            frame = inspect.currentframe()
-            raise Exception(str(err), f'{__name__}.{frame.f_code.co_name}')
+        print(f"Get Artist Latest Release: {err}")
+        raise Exception(f"Get Artist Latest Release: {err}")
 
 def __is_within_a_week(target_date_str):
-    today = datetime.today().date()
-    target_date = datetime.strptime(target_date_str, '%Y-%m-%d').date()
+    try:
+        today = datetime.today().date()
+        target_date = datetime.strptime(target_date_str, '%Y-%m-%d').date()
 
-    # Calculate the absolute difference in days
-    difference_in_days = abs((today - target_date).days)
-
-    return difference_in_days <= 7
+        # Calculate the absolute difference in days
+        difference_in_days = abs((today - target_date).days)
+        print(difference_in_days <= 7)
+        return difference_in_days <= 7
+    except Exception as err:
+        print(f"Is Date Within a week: {err}")
+        raise Exception(f"Is Date Within a week: {err}")
 
 def create_release_radar_playlist(user_id, access_token):
     try:
@@ -187,10 +200,8 @@ def create_release_radar_playlist(user_id, access_token):
 
         return response.json()['id']  # Return the playlist id
     except Exception as err:
-            print(traceback.print_exc())
-            frame = inspect.currentframe()
-            raise Exception(str(err), f'{__name__}.{frame.f_code.co_name}')
-
+        print(f"Create Release Radar Playlist: {err}")
+        raise Exception(f"Create Release Radar Playlist: {err}")
 def delete_playlist_songs(playlist_id, access_token):
     try:
         url = f"{BASE_URL}/playlists/{playlist_id}/tracks"
@@ -211,9 +222,8 @@ def delete_playlist_songs(playlist_id, access_token):
             raise Exception(f"Error Deleting songs to playlist: {response.json()}")
 
     except Exception as err:
-            print(traceback.print_exc())
-            frame = inspect.currentframe()
-            raise Exception(str(err), f'{__name__}.{frame.f_code.co_name}')
+        print(f"Delete Playlist Songs: {err}")
+        raise Exception(f"Delete Playlist Songs: {err}")
     
 def add_playlist_songs(playlist_id, uri_list, access_token):
     try:
@@ -236,9 +246,8 @@ def add_playlist_songs(playlist_id, uri_list, access_token):
 
         return response.json()
     except Exception as err:
-            print(traceback.print_exc())
-            frame = inspect.currentframe()
-            raise Exception(str(err), f'{__name__}.{frame.f_code.co_name}')
+        print(f"Add Playlist Songs: {err}")
+        raise Exception(f"Add Playlist Songs: {err}")
 
 def add_playlist_image(playlist_id, access_token, retried=False):
     try:
@@ -266,17 +275,19 @@ def add_playlist_image(playlist_id, access_token, retried=False):
                 raise Exception(f"Failed to upload image: {response.status_code} {response.text}")
 
     except Exception as err:
-            print(traceback.print_exc())
-            frame = inspect.currentframe()
-            raise Exception(str(err), f'{__name__}.{frame.f_code.co_name}')
-
+        print(f"Add Playlist Image: {err}")
+        raise Exception(f"Add Playlist Image: {err}")
 
 def update_user_table_entry(user, playlist_id):
-    # Release Radar Id
-    user['releaseRadarId'] = playlist_id
-    # Time Stamp
-    user['updatedAt'] = __get_time_stamp()
-    update_table_item(WRAPPED_TABLE_NAME, user)
+    try:
+        # Release Radar Id
+        user['releaseRadarId'] = playlist_id
+        # Time Stamp
+        user['updatedAt'] = __get_time_stamp()
+        update_table_item(WRAPPED_TABLE_NAME, user)
+    except Exception as err:
+        print(f"Update User Table Entry: {err}")
+        raise Exception(f"Update User Table Entry: {err}")
 
 def __get_time_stamp():
     return datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
