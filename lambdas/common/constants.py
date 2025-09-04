@@ -1,4 +1,5 @@
 import os
+from lambdas.common.logger import Logger
 
 # General
 AWS_DEFAULT_REGION ='us-east-1'
@@ -11,6 +12,10 @@ RESPONSE_HEADERS = {
     "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
     "Content-Type": "application/json"
 }
+
+# Logging
+LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO").upper()
+LOGGER = Logger(LOG_LEVEL)
 
 # Dynamodb
 DYNAMODB_KMS_ALIAS = os.environ['DYNAMODB_KMS_ALIAS']

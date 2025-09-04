@@ -1,4 +1,7 @@
 import requests
+from lambdas.common.constants import LOGGER
+
+log = LOGGER.get_logger(__file__)
 
 class TrackList:
 
@@ -23,7 +26,7 @@ class TrackList:
             self.track_id_list = self.__get_id_list()
             self.number_of_tracks = len(self.track_list)
         except Exception as err:
-            print(f"Set User Top Tracks: {err}")
+            log.error(f"Set User Top Tracks: {err}")
             raise Exception(f"Set User Top Tracks {self.term}: {err}")
 
     async def get_top_tracks(self):
@@ -40,5 +43,5 @@ class TrackList:
 
             return response_data['items']  # Return the list of top tracks
         except Exception as err:
-            print(f"Get User Top Tracks: {err}")
+            log.error(f"Get User Top Tracks: {err}")
             raise Exception(f"Get User Top Tracks {self.term}: {err}")

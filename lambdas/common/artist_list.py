@@ -1,4 +1,7 @@
 import requests
+from lambdas.common.constants import LOGGER
+
+log = LOGGER.get_logger(__file__)
 
 class ArtistList:
 
@@ -24,7 +27,7 @@ class ArtistList:
             self.artist_id_list = self.__get_id_list()
             self.number_of_artists = len(self.artist_list)
         except Exception as err:
-            print(f"Set User Top Artists: {err}")
+            log.error(f"Set User Top Artists: {err}")
             raise Exception(f"Set User Top Artists {self.term}: {err}")
         
     async def get_top_artists(self, term: str):
@@ -41,7 +44,7 @@ class ArtistList:
 
             return response_data['items']  # Return the list of top artists
         except Exception as err:
-            print(f"Get User Top Artists: {err}")
+            log.error(f"Get User Top Artists: {err}")
             raise Exception(f"Get User Top Artists {term}: {err}")
     
     def get_top_genres(self):
@@ -57,5 +60,5 @@ class ArtistList:
                 top_genres[genre] = top_genres.get(genre, 0) + 1
             self.top_genres
         except Exception as err:
-            print(f"Get Top Genres: {err}")
+            log.error(f"Get Top Genres: {err}")
             raise Exception(f"Get Top Genres: {err}")

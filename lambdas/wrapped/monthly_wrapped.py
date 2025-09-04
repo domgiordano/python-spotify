@@ -6,8 +6,10 @@ import asyncio
 
 from lambdas.common.wrapped_helper import get_active_wrapped_users
 from lambdas.common.spotify import Spotify
-from lambdas.common.constants import WRAPPED_TABLE_NAME, LOGO_BASE_64, BLACK_2025_BASE_64
+from lambdas.common.constants import WRAPPED_TABLE_NAME, LOGO_BASE_64, BLACK_2025_BASE_64, LOGGER
 from lambdas.common.dynamo_helpers import update_table_item
+
+log = LOGGER.get_logger(__file__)
 
 async def wrapped_chron_job(event):
     try:
@@ -24,11 +26,11 @@ async def wrapped_chron_job(event):
                 spotify.monthly_spotify_playlist.build_playlist(spotify.top_tracks_short.track_uri_list, LOGO_BASE_64)
             ]
             if spotify.last_month_number == 6:
-                print("------------- CREATING 1/2 YEAR IN REVIEW -------------")
+                log.info("------------- CREATING 1/2 YEAR IN REVIEW -------------")
                 tasks.append(spotify.first_half_of_year_spotify_playlist.build_playlist(spotify.top_tracks_medium, LOGO_BASE_64))
 
             if spotify.last_month_number == 12:
-                print("------------- CREATING FULL YEAR IN REVIEW -------------")
+                log.info("------------- CREATING FULL YEAR IN REVIEW -------------")
                 # Get Tracks URI List
                 tasks.append(spotify.full_year_spotify_playlist.build_playlist(spotify.top_tracks_long, BLACK_2025_BASE_64))
 
@@ -45,11 +47,11 @@ async def wrapped_chron_job(event):
 
             response.append(spotify.email)
 
-            print(f"---------- USER ADDED: {spotify.email} ----------")
+            log.info(f"---------- USER ADDED: {spotify.email} ----------")
 
         return response
     except Exception as err:
-        print(traceback.print_exc())
+        log.error(traceback.log.info_exc())
         frame = inspect.currentframe()
         raise Exception(str(err), f'{__name__}.{frame.f_code.co_name}')
 

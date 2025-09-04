@@ -5,6 +5,9 @@ from lambdas.common.ssm_helpers import SPOTIFY_CLIENT_SECRET, SPOTIFY_CLIENT_ID
 from lambdas.common.track_list import TrackList
 from lambdas.common.artist_list import ArtistList
 from lambdas.common.playlist import Playlist
+from lambdas.common.constants import LOGGER
+
+log = LOGGER.get_logger(__file__)
 
 class Spotify:
 
@@ -67,7 +70,7 @@ class Spotify:
 
             return response_data['access_token']
         except Exception as err:
-            print(f"Get Spotify Access Token: {err}")
+            log.error(f"Get Spotify Access Token: {err}")
             raise Exception(f"Get Spotify Access Token: {err}")
     async def get_top_tracks(self):
         try:
@@ -78,7 +81,7 @@ class Spotify:
             ]
             asyncio.gather(*tasks)
         except Exception as err:
-            print(f"Get Top Tracks: {err}")
+            log.error(f"Get Top Tracks: {err}")
             raise Exception(f"Get Top Tracks: {err}")
         
     async def get_top_artists(self):
@@ -90,7 +93,7 @@ class Spotify:
             ]
             asyncio.gather(*tasks)
         except Exception as err:
-            print(f"Get Top Tracks: {err}")
+            log.error(f"Get Top Tracks: {err}")
             raise Exception(f"Get Top Tracks: {err}")
         
     def get_top_tracks_ids_last_month(self):
@@ -143,5 +146,5 @@ class Spotify:
 
             return last_month_name, last_month_number, current_year
         except Exception as err:
-            print(f"Get Last Month Data: {err}")
+            log.error(f"Get Last Month Data: {err}")
             raise Exception(f"Get Last Month Data: {err}")

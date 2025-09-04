@@ -1,5 +1,8 @@
 import requests
 import time
+from lambdas.common.constants import LOGGER
+
+log = LOGGER.get_logger(__file__)
 
 class Playlist:
 
@@ -39,7 +42,7 @@ class Playlist:
 
             return response.json()  # Return the response as a JSON object
         except Exception as err:
-            print(f"Create Playlist: {err}")
+            log.error(f"Create Playlist: {err}")
             raise Exception(f"Create Playlist: {err}")
     
 
@@ -59,7 +62,7 @@ class Playlist:
 
             return response.json()
         except Exception as err:
-            print(f"Adding Playlist Songs: {err}")
+            log.error(f"Adding Playlist Songs: {err}")
             raise Exception(f"Adding Playlist Songs: {err}")
 
 
@@ -83,6 +86,6 @@ class Playlist:
                     raise Exception(f"Failed to upload image: {response.status_code} {response.text}")
 
         except Exception as err:
-            print(f"Adding Playlist Image: {err}")
+            log.error(f"Adding Playlist Image: {err}")
             raise Exception(f"Adding Playlist Image: {err}")
     
