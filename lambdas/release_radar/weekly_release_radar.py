@@ -3,9 +3,13 @@ from datetime import datetime, timezone
 import time
 import asyncio
 
+from lambdas.common.wrapped_helper import get_active_wrapped_users
 from lambdas.common.ssm_helpers import SPOTIFY_CLIENT_SECRET, SPOTIFY_CLIENT_ID
-from lambdas.common.constants import WRAPPED_TABLE_NAME, BLACK_LOGO_BASE_64
-from lambdas.common.dynamo_helpers import full_table_scan, update_table_item
+from lambdas.common.constants import WRAPPED_TABLE_NAME, BLACK_LOGO_BASE_64, LOGGER
+from lambdas.common.dynamo_helpers import update_table_item
+
+
+log = LOGGER.get_logger(__file__)
 
 BASE_URL = "https://api.spotify.com/v1"
 
@@ -18,76 +22,67 @@ async def release_radar_chron_job(event):
             access_token = get_access_token(user['refreshToken'])
 
             artist_ids = await get_followed_artists(access_token)
-            print(f"Artist IDs found: {len(artist_ids)}")
+            log.info(f"Artist IDs found: {len(artist_ids)}")
             
             tasks = [get_artist_latest_release(id, access_token) for id in artist_ids]
 
             # Get all ids of latest releases for the week
             artist_latest_release_uris = await asyncio.gather(*tasks)
-            print(f"Latest Release IDs: {artist_latest_release_uris}")
-            print(len(artist_latest_release_uris))
+            log.info(f"Latest Release IDs: {artist_latest_release_uris}")
+            log.info(len(artist_latest_release_uris))
             # Remove None values - split lists
             tracks_uris, albums_uris = __split_spotify_uris(artist_latest_release_uris)
-            print(f"Latest Release Albums: {albums_uris}")
-            print(len(albums_uris))
-            print(f"Latest Release Tracks: {tracks_uris}")
-            print(len(tracks_uris))
+            log.info(f"Latest Release Albums: {albums_uris}")
+            log.info(len(albums_uris))
+            log.info(f"Latest Release Tracks: {tracks_uris}")
+            log.info(len(tracks_uris))
 
             # Get all tracks for new albums
             tasks = [get_album_tracks(uri, access_token) for uri in albums_uris]
             all_tracks_from_albums_uris = await asyncio.gather(*tasks)
             flattened_uris = [item for sublist in all_tracks_from_albums_uris for item in sublist]
-            print(f"All Tracks from Albums: {flattened_uris}")
-            print(len(flattened_uris))
+            log.info(f"All Tracks from Albums: {flattened_uris}")
+            log.info(len(flattened_uris))
             tracks_uris.extend(flattened_uris)
             # Remove Duplicates
             final_tracks_uris = list(set(tracks_uris))
-            print(f"All Tracks total: {len(final_tracks_uris)}")
+            log.info(f"All Tracks total: {len(final_tracks_uris)}")
 
             playlist_id = user.get('releaseRadarId', None)
             if not playlist_id:
-                print("No Playlist ID found yet.")
+                log.info("No Playlist ID found yet.")
                 playlist_id = create_release_radar_playlist(user['userId'], access_token)
-                print(f"Playlist created with ID: {playlist_id}")
+                log.info(f"Playlist created with ID: {playlist_id}")
                 time.sleep(3)
                 add_playlist_image(playlist_id, access_token)
-                print("Playlist Image added.")
+                log.info("Playlist Image added.")
                 time.sleep(3)
                 # Update the User
                 update_user_table_entry(user, playlist_id)
-                print("User Table updated with playlist id.")
+                log.info("User Table updated with playlist id.")
             else:
-                print(f"Playlist ID found: {playlist_id}")
+                log.info(f"Playlist ID found: {playlist_id}")
                 # Erase Playlist songs
                 delete_playlist_songs(playlist_id, access_token)
-                print("Playlist songs cleared.")
+                log.info("Playlist songs cleared.")
 
             add_playlist_songs(playlist_id, final_tracks_uris, access_token)
-            print("Playlist songs added.")
+            log.info("Playlist songs added.")
             
             
             response.append(user['email'])
 
-            print(f"---------- USER ADDED: {user['email']} ----------")
+            log.info(f"---------- USER ADDED: {user['email']} ----------")
 
         return response
     except Exception as err:
-        print(f"Release Radar Chron Job: {err}")
+        log.error(f"Release Radar Chron Job: {err}")
         raise Exception(f"Release Radar Chron Job: {err}")
 
 def __split_spotify_uris(uris):
     tracks = [id for id in uris if id and id.startswith("spotify:track:")]
     albums = [id for id in uris if id and id.startswith("spotify:album:")]
     return tracks, albums
-
-def get_active_wrapped_users():
-     try:
-        table_values = full_table_scan(WRAPPED_TABLE_NAME)
-        table_values[:] = [item for item in table_values if item['active']]
-        return table_values
-     except Exception as err:
-        print(f"Get Active Wrapped Users: {err}")
-        raise Exception(f"Get Active Wrapped Users: {err}")
 
 def get_access_token(refresh_token):
     try:
@@ -111,7 +106,7 @@ def get_access_token(refresh_token):
 
         return response_data['access_token']
     except Exception as err:
-        print(f"Get Access Token: {err}")
+        log.error(f"Get Access Token: {err}")
         raise Exception(f"Get Access Token: {err}")
 
 def __get_headers(access_token: str):
@@ -141,7 +136,7 @@ async def get_album_tracks(album_uri: str, access_token: str):
         
         return track_uris
     except Exception as err:
-        print(f"Get Album Tracks: {err}")
+        log.error(f"Get Album Tracks: {err}")
         raise Exception(f"Get Album Tracks: {err}")
     
 async def get_followed_artists(access_token):
@@ -172,7 +167,7 @@ async def get_followed_artists(access_token):
         
         return artist_ids
     except Exception as err:
-        print(f"Get Followed Artists: {err}")
+        log.error(f"Get Followed Artists: {err}")
         raise Exception(f"Get Followed Artists: {err}")
 
 async def get_artist_latest_release(artist_id, access_token):
@@ -188,7 +183,7 @@ async def get_artist_latest_release(artist_id, access_token):
 
         # Check for errors
         if response.status_code == 429:
-            print("RATE LIMIT REACHED")
+            log.info("RATE LIMIT REACHED")
             time.sleep(response.headers['retry-after'] + 2)
             return await get_artist_latest_release(artist_id, access_token)
         if response.status_code != 200:
@@ -200,7 +195,7 @@ async def get_artist_latest_release(artist_id, access_token):
              return None
 
     except Exception as err:
-        print(f"Get Artist Latest Release: {err}")
+        log.error(f"Get Artist Latest Release: {err}")
         raise Exception(f"Get Artist Latest Release: {err}")
 
 def __is_within_a_week(target_date_str):
@@ -210,10 +205,10 @@ def __is_within_a_week(target_date_str):
 
         # Calculate the absolute difference in days
         difference_in_days = abs((today - target_date).days)
-        print(difference_in_days <= 7)
+        log.info(difference_in_days <= 7)
         return difference_in_days <= 7
     except Exception as err:
-        print(f"Is Date Within a week: {err}")
+        log.error(f"Is Date Within a week: {err}")
         raise Exception(f"Is Date Within a week: {err}")
 
 def create_release_radar_playlist(user_id, access_token):
@@ -238,7 +233,7 @@ def create_release_radar_playlist(user_id, access_token):
 
         return response.json()['id']  # Return the playlist id
     except Exception as err:
-        print(f"Create Release Radar Playlist: {err}")
+        log.error(f"Create Release Radar Playlist: {err}")
         raise Exception(f"Create Release Radar Playlist: {err}")
 def delete_playlist_songs(playlist_id, access_token):
     try:
@@ -265,12 +260,12 @@ def delete_playlist_songs(playlist_id, access_token):
             del_url = f"{BASE_URL}/playlists/{playlist_id}/tracks"
             resp = requests.delete(del_url, headers=headers, json=payload)
             if resp.status_code not in (200, 201):
-                print("Error deleting batch:", resp.status_code, resp.text)
+                log.info("Error deleting batch:", resp.status_code, resp.text)
                 return
 
-        print("Tracks removed successfully.")
+        log.info("Tracks removed successfully.")
     except Exception as err:
-        print(f"Delete Playlist Songs: {err}")
+        log.error(f"Delete Playlist Songs: {err}")
         raise Exception(f"Delete Playlist Songs: {err}")
     
 def add_playlist_songs(playlist_id, uri_list, access_token):
@@ -296,13 +291,13 @@ def add_playlist_songs(playlist_id, uri_list, access_token):
             response = requests.post(url, json=body, headers=headers)
 
             if response.status_code == 201:
-                print(f"Successfully added {len(batch_uris)} tracks.")
+                log.info(f"Successfully added {len(batch_uris)} tracks.")
             else:
                 raise Exception(f"Error adding songs to playlist: {response.json()}")
 
-        print("Tracks Added Successfully.")
+        log.info("Tracks Added Successfully.")
     except Exception as err:
-        print(f"Add Playlist Songs: {err}")
+        log.error(f"Add Playlist Songs: {err}")
         raise Exception(f"Add Playlist Songs: {err}")
 
 def add_playlist_image(playlist_id, access_token, retried=False):
@@ -331,7 +326,7 @@ def add_playlist_image(playlist_id, access_token, retried=False):
                 raise Exception(f"Failed to upload image: {response.status_code} {response.text}")
 
     except Exception as err:
-        print(f"Add Playlist Image: {err}")
+        log.error(f"Add Playlist Image: {err}")
         raise Exception(f"Add Playlist Image: {err}")
 
 def update_user_table_entry(user, playlist_id):
@@ -342,7 +337,7 @@ def update_user_table_entry(user, playlist_id):
         user['updatedAt'] = __get_time_stamp()
         update_table_item(WRAPPED_TABLE_NAME, user)
     except Exception as err:
-        print(f"Update User Table Entry: {err}")
+        log.error(f"Update User Table Entry: {err}")
         raise Exception(f"Update User Table Entry: {err}")
 
 def __get_time_stamp():

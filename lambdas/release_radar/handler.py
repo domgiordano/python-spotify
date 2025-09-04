@@ -6,6 +6,10 @@ from lambdas.common.utility_helpers import build_successful_handler_response, bu
 from lambdas.common.errors import ReleaseRadarError
 from weekly_release_radar import release_radar_chron_job
 
+from lambdas.common.constants import LOGGER
+
+log = LOGGER.get_logger(__file__)
+
 HANDLER = 'release-radar'
 
 
@@ -25,6 +29,6 @@ def handler(event, context):
         function = f'handler.{__name__}'
         if len(err.args) > 1:
             function = err.args[1]
-        print(traceback.print_exc())
+        log.error(traceback.log.error_exc())
         error = ReleaseRadarError(message, HANDLER, function) if 'Invalid User Input' not in message else ReleaseRadarError(message, HANDLER, function, 400)
         return build_error_handler_response(str(error))

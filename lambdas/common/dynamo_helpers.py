@@ -1,8 +1,8 @@
 
 import boto3
-import inspect
-import traceback
-from lambdas.common.constants import AWS_DEFAULT_REGION, DYNAMODB_KMS_ALIAS
+from lambdas.common.constants import AWS_DEFAULT_REGION, DYNAMODB_KMS_ALIAS, LOGGER
+
+log = LOGGER.get_logger(__file__)
 
 dynamodb_res = boto3.resource("dynamodb", region_name=AWS_DEFAULT_REGION)
 dynamodb_client = boto3.client("dynamodb", region_name=AWS_DEFAULT_REGION)
@@ -29,15 +29,8 @@ def full_table_scan(table_name, **kwargs):
 
         return data
     except Exception as err:
-        message = err.args[0]
-        prev_path = None
-        if len(err.args) > 1:
-            prev_path = err.args[1]
-        print(traceback.print_exc())
-        print('💥 Error in Full Table Scan - Dynamodb Helper ' + message)
-        frame = inspect.currentframe()
-        raise Exception(message, f'{__name__}.{frame.f_code.co_name}') if prev_path is None else Exception(message, f'{__name__}.{frame.f_code.co_name}  ->> {prev_path}')
-
+        log.error(f"Dynamodb Full Table Scan: {err}")
+        raise Exception(f"Dynamodb Full Table Scan: {err}")
 def table_scan_by_ids(table_name, key, ids, goal_filter, **kwargs):
     try:
         table = dynamodb_res.Table(table_name)
@@ -61,14 +54,8 @@ def table_scan_by_ids(table_name, key, ids, goal_filter, **kwargs):
 
         return data
     except Exception as err:
-        message = err.args[0]
-        prev_path = None
-        if len(err.args) > 1:
-            prev_path = err.args[1]
-        print(traceback.print_exc())
-        print('💥 Error in Table Scan By Ids - Dynamodb Helper ' + message)
-        frame = inspect.currentframe()
-        raise Exception(message, f'{__name__}.{frame.f_code.co_name}') if prev_path is None else Exception(message, f'{__name__}.{frame.f_code.co_name}  ->> {prev_path}')
+        log.error(f"Dynamodb Table Scan by IDs: {err}")
+        raise Exception(f"Dynamodb Table Scan by IDs: {err}")
 
 # Update Entire Table Item - Send in full dict of item
 def delete_table_item(table_name, primary_key, primary_key_value):
@@ -82,14 +69,8 @@ def delete_table_item(table_name, primary_key, primary_key_value):
         )
         return response
     except Exception as err:
-        message = err.args[0]
-        prev_path = None
-        if len(err.args) > 1:
-            prev_path = err.args[1]
-        print(traceback.print_exc())
-        print('💥 Error in Deleting Table Item - Dynamodb Helper ' + message)
-        frame = inspect.currentframe()
-        raise Exception(message, f'{__name__}.{frame.f_code.co_name}') if prev_path is None else Exception(message, f'{__name__}.{frame.f_code.co_name}  ->> {prev_path}')
+        log.error(f"Dynamodb Table Delete Table Item: {err}")
+        raise Exception(f"Dynamodb Table Delete Table Item: {err}")
 
 
 # Update Entire Table Item - Send in full dict of item
@@ -101,14 +82,8 @@ def update_table_item(table_name, table_item):
         )
         return response
     except Exception as err:
-        message = err.args[0]
-        prev_path = None
-        if len(err.args) > 1:
-            prev_path = err.args[1]
-        print(traceback.print_exc())
-        print('💥 Error in Update Table Item - Dynamodb Helper ' + message)
-        frame = inspect.currentframe()
-        raise Exception(message, f'{__name__}.{frame.f_code.co_name}') if prev_path is None else Exception(message, f'{__name__}.{frame.f_code.co_name}  ->> {prev_path}')
+        log.error(f"Dynamodb Table Update Table Item: {err}")
+        raise Exception(f"Dynamodb Table Update Table Item: {err}")
 
 
 # Update single field of Table - send in one attribute and key
@@ -132,15 +107,8 @@ def update_table_item_field(table_name, primary_key, primary_key_value, attr_key
         )
         return response
     except Exception as err:
-        message = err.args[0]
-        prev_path = None
-        if len(err.args) > 1:
-            prev_path = err.args[1]
-        print(traceback.print_exc())
-        print('💥 Error in Update Table Item Field - Dynamodb Helper ' + message)
-        frame = inspect.currentframe()
-        raise Exception(message, f'{__name__}.{frame.f_code.co_name}') if prev_path is None else Exception(message, f'{__name__}.{frame.f_code.co_name}  ->> {prev_path}')
-
+        log.error(f"Dynamodb Table Update Table Item Field: {err}")
+        raise Exception(f"Dynamodb Table Update Table Item Field: {err}")
 
 def check_if_item_exist(table_name, id_key, id_val, override=False):
     try:
@@ -157,14 +125,8 @@ def check_if_item_exist(table_name, id_key, id_val, override=False):
         else:
             raise Exception("Invalid ID (" + id_val + "): Item Does not Exist.")
     except Exception as err:
-        message = err.args[0]
-        prev_path = None
-        if len(err.args) > 1:
-            prev_path = err.args[1]
-        print(traceback.print_exc())
-        print('💥 Error in Check If Item Exists - Dynamodb Helper ' + message)
-        frame = inspect.currentframe()
-        raise Exception(message, f'{__name__}.{frame.f_code.co_name}') if prev_path is None else Exception(message, f'{__name__}.{frame.f_code.co_name}  ->> {prev_path}')
+        log.error(f"Dynamodb Table Check If Item Exists: {err}")
+        raise Exception(f"Dynamodb Table Check If Item Exists: {err}")
 
 def get_item_by_key(table_name, id_key, id_val):
     try:
@@ -180,14 +142,8 @@ def get_item_by_key(table_name, id_key, id_val):
         else:
             raise Exception("Invalid ID (" + id_val + "): Item Does not Exist.")
     except Exception as err:
-        message = err.args[0]
-        prev_path = None
-        if len(err.args) > 1:
-            prev_path = err.args[1]
-        print(traceback.print_exc())
-        print('💥 Error in Get Item By Key - Dynamodb Helper ' + message)
-        frame = inspect.currentframe()
-        raise Exception(message, f'{__name__}.{frame.f_code.co_name}') if prev_path is None else Exception(message, f'{__name__}.{frame.f_code.co_name}  ->> {prev_path}')
+        log.error(f"Dynamodb Table Get Item By Key: {err}")
+        raise Exception(f"Dynamodb Table Get Item By Key: {err}")
 
 def query_table_by_key(table_name, id_key, id_val, ascending=False):
     try:
@@ -198,15 +154,8 @@ def query_table_by_key(table_name, id_key, id_val, ascending=False):
         )
         return response
     except Exception as err:
-        message = err.args[0]
-        prev_path = None
-        if len(err.args) > 1:
-            prev_path = err.args[1]
-        print(traceback.print_exc())
-        print('💥 Error in Query Table By Key - Dynamodb Helper ' + message)
-        frame = inspect.currentframe()
-        raise Exception(message, f'{__name__}.{frame.f_code.co_name}') if prev_path is None else Exception(message, f'{__name__}.{frame.f_code.co_name}  ->> {prev_path}')
-
+        log.error(f"Dynamodb Table Query Table By Key: {err}")
+        raise Exception(f"Dynamodb Query Table Item By Key: {err}")
 def item_has_property(item, property):
     for field in item:
         if field == property:
@@ -220,31 +169,15 @@ def emptyTable(table_name, hash_key, hash_key_type):
         table = createTable(table_name, hash_key, hash_key_type)
         return table
     except Exception as err:
-        message = err.args[0]
-        prev_path = None
-        if len(err.args) > 1:
-            prev_path = err.args[1]
-        print(traceback.print_exc())
-        print('💥 Error in Empty Table - Dynamodb Helper ' + message)
-        frame = inspect.currentframe()
-        raise Exception(message, f'{__name__}.{frame.f_code.co_name}') if prev_path is None else Exception(message, f'{__name__}.{frame.f_code.co_name}  ->> {prev_path}')
+        log.error(f"Dynamodb Table Empty Table: {err}")
+        raise Exception(f"Dynamodb Table Empty Table: {err}")
 
 def deleteTable(table_name):
     try:
         return dynamodb_client.delete_table(TableName=table_name)
     except Exception as err:
-        message = err.args[0]
-        prev_path = None
-        if len(err.args) > 1:
-            prev_path = err.args[1]
-        prev_path = None
-        if len(err.args) > 1:
-            prev_path = err.args[1]
-        print(traceback.print_exc())
-        print('💥 Error in Delete Table - Dynamodb Helper ' + message)
-        frame = inspect.currentframe()
-        raise Exception(message, f'{__name__}.{frame.f_code.co_name}') if prev_path is None else Exception(message, f'{__name__}.{frame.f_code.co_name}  ->> {prev_path}')
-
+        log.error(f"Dynamodb Table Delete Table: {err}")
+        raise Exception(f"Dynamodb Table Delete Table: {err}")
 def createTable(table_name, hash_key, hash_key_type):
     try:
         #Wait for table to be deleted
@@ -287,11 +220,5 @@ def createTable(table_name, hash_key, hash_key_type):
 
         return table
     except Exception as err:
-        message = err.args[0]
-        prev_path = None
-        if len(err.args) > 1:
-            prev_path = err.args[1]
-        print(traceback.print_exc())
-        print('💥 Error in Create Table - Dynamodb Helper ' + message)
-        frame = inspect.currentframe()
-        raise Exception(message, f'{__name__}.{frame.f_code.co_name}') if prev_path is None else Exception(message, f'{__name__}.{frame.f_code.co_name}  ->> {prev_path}')
+        log.error(f"Dynamodb Table Create Table: {err}")
+        raise Exception(f"Dynamodb Table Create Table: {err}")

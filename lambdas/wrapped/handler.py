@@ -7,6 +7,9 @@ from lambdas.common.utility_helpers import build_successful_handler_response, is
 from lambdas.common.errors import WrappednError
 from wrapped_data import update_wrapped_data, get_wrapped_data
 from monthly_wrapped import wrapped_chron_job
+from lambdas.common.constants import LOGGER
+
+log = LOGGER.get_logger(__file__)
 
 HANDLER = 'wrapped'
 
@@ -28,7 +31,7 @@ def handler(event, context):
         event_auth = event['headers']['Authorization']
 
         if path:
-            print(f'Path called: {path} \nWith method: {http_method}')
+            log.info(f'Path called: {path} \nWith method: {http_method}')
 
             # Add New Wrapped Data
             if (path == f"/{HANDLER}/data") and (http_method == 'POST'):
@@ -64,6 +67,6 @@ def handler(event, context):
         function = f'handler.{__name__}'
         if len(err.args) > 1:
             function = err.args[1]
-        print(traceback.print_exc())
+        log.error(traceback.print_exc())
         error = WrappednError(message, HANDLER, function) if 'Invalid User Input' not in message else WrappednError(message, HANDLER, function, 400)
         return build_error_handler_response(str(error))

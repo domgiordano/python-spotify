@@ -1,9 +1,9 @@
-import traceback
-import inspect
 from datetime import datetime, timezone
 
 from lambdas.common.dynamo_helpers import update_table_item, get_item_by_key, check_if_item_exist
-from lambdas.common.constants import WRAPPED_TABLE_NAME
+from lambdas.common.constants import WRAPPED_TABLE_NAME, LOGGER
+
+log = LOGGER.get_logger(__file__)
 
 
 def update_wrapped_data(data: dict, optional_fields={}):
@@ -18,9 +18,8 @@ def update_wrapped_data(data: dict, optional_fields={}):
         else:
             raise Exception('Failed to Opt User into Monthly Wrapped')
     except Exception as err:
-        print(traceback.print_exc())
-        frame = inspect.currentframe()
-        raise Exception(str(err), f'{__name__}.{frame.f_code.co_name}')
+        log.error(f"{err}")
+        raise Exception(f"Update Wrapped Data: {err}")
 
 def get_wrapped_data(email: str):
     try:
@@ -30,9 +29,8 @@ def get_wrapped_data(email: str):
         else:
             return {'active': False}
     except Exception as err:
-        print(traceback.print_exc())
-        frame = inspect.currentframe()
-        raise Exception(str(err), f'{__name__}.{frame.f_code.co_name}')
+        log.error(f"{err}")
+        raise Exception(f"Get Wrapped Data: {err}")
 
 def add_time_stamp(data):
     time_stamp = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
