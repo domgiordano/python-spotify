@@ -50,9 +50,8 @@ async def wrapped_chron_job(event):
 
         return response
     except Exception as err:
-        log.error(traceback.log.info_exc())
-        frame = inspect.currentframe()
-        raise Exception(str(err), f'{__name__}.{frame.f_code.co_name}')
+        log.error(f"Wrapped Chron Job: {err}")
+        raise Exception(f"Wrapped Chron Job: {err}")
 
 def __update_user_table_entry(user, top_tracks_last_month, top_artists_last_month, top_genres_last_month):
     # Tracks
