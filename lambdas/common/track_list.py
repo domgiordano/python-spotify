@@ -8,6 +8,7 @@ class TrackList:
     BASE_URL = "https://api.spotify.com/v1"
 
     def __init__(self, term: str):
+        log.info(f"Initializing Tracks for term: {term}")
         self.term: str = term
         self.track_list: list = []
         self.track_uri_list: list = []
@@ -21,16 +22,19 @@ class TrackList:
     
     async def set_top_tracks(self):
         try:
+            log.info(f"Setting Top Tracks for term: {self.term}")
             self.track_list = await self.get_top_tracks()
             self.track_uri_list = self.__get_uri_list()
             self.track_id_list = self.__get_id_list()
             self.number_of_tracks = len(self.track_list)
+            log.info("Top Tracks Set successfully!")
         except Exception as err:
             log.error(f"Set User Top Tracks: {err}")
             raise Exception(f"Set User Top Tracks {self.term}: {err}")
 
     async def get_top_tracks(self):
         try:
+            log.info(f"Getting top tracks for term {self.term}...")
             url = f"{self.BASE_URL}/me/top/tracks?limit=25&time_range={self.term}"
 
             # Make the request

@@ -14,6 +14,7 @@ class Spotify:
     BASE_URL = "https://api.spotify.com/v1"
 
     def __init__(self, user: dict):
+        log.info(f"Initializing Spotify Client for User {user['email']}.")
         self.client_id: str= SPOTIFY_CLIENT_ID
         self.client_secret: str = SPOTIFY_CLIENT_SECRET
         self.user_id: str = user['id']
@@ -50,6 +51,7 @@ class Spotify:
 
     def get_access_token(self):
         try:
+            log.info("Getting spotify access token..")
             url = "https://accounts.spotify.com/api/token"
 
             # Prepare the data for the token request
@@ -68,30 +70,35 @@ class Spotify:
             if response.status_code != 200:
                 raise Exception(f"Error refreshing token: {response_data}")
 
+            log.info("Successfully retrieved spotify access token!")
             return response_data['access_token']
         except Exception as err:
             log.error(f"Get Spotify Access Token: {err}")
             raise Exception(f"Get Spotify Access Token: {err}")
     async def get_top_tracks(self):
         try:
+            log.info(f"Getting Top tracks for User {self.email}...")
             tasks = [
                 self.top_tracks_short.set_top_tracks(),
                 self.top_tracks_medium.set_top_tracks(),
                 self.top_tracks_long.set_top_tracks()
             ]
             asyncio.gather(*tasks)
+            log.info("Top Tracked Retrieved!")
         except Exception as err:
             log.error(f"Get Top Tracks: {err}")
             raise Exception(f"Get Top Tracks: {err}")
         
     async def get_top_artists(self):
         try:
+            log.info(f"Getting Top Artists for User {self.email}...")
             tasks = [
                 self.top_artists_short.set_top_artists(),
                 self.top_artists_medium.set_top_artists(),
                 self.top_artists_long.set_top_artists()
             ]
             asyncio.gather(*tasks)
+            log.info("Top Artists Retrieved!")
         except Exception as err:
             log.error(f"Get Top Tracks: {err}")
             raise Exception(f"Get Top Tracks: {err}")
