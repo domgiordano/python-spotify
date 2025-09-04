@@ -1,4 +1,5 @@
 import requests
+from lambdas.common.track_list import TrackList
 from lambdas.common.constants import LOGGER
 
 log = LOGGER.get_logger(__file__)
@@ -7,20 +8,59 @@ class ArtistList:
 
     BASE_URL = "https://api.spotify.com/v1"
 
-    def __init__(self, term: str):
+    def __init__(self, term: str, headers: dict):
         log.info(f"Initializing Artist for term: {term}")
         self.term: str = term
+        self.headers = headers
         self.artist_list: list = []
         self.artist_uri_list: list = []
         self.artist_id_list: list = []
         self.number_of_artists: int = 0
         self.top_genres: list = None
+        self.artist_tracks: TrackList = TrackList("Following", self.headers)
     
     def __get_uri_list(self):
         return [artist['uri'] for artist in self.artist_list if 'uri' in artist]
     def __get_id_list(self):
         return [artist['id'] for artist in self.artist_list if 'id' in artist]
     
+    async def get_followed_artist_latest_release(self):
+        try:
+            self.artist_tracks.get_artist_latest_release(self.artist_id_list)
+        except Exception as err:
+            log.error(f"Get Followed Artists Latest Release: {err}")
+            raise Exception(f"Get Followed Artists Latest Release: {err}")
+
+    async def get_followed_artists(self):
+        try:
+            log.info(f"Getting followed artists..")
+            artist_ids = []
+
+            url = f"{self.BASE_URL}/me/following?type=artist&limit=50"
+            more_artists = True
+            while(more_artists):
+                
+                # Make the request
+                response = requests.get(url, headers=self.headers)
+                response_data = response.json()
+
+                # Check for errors
+                if response.status_code != 200:
+                    raise Exception(f"Error fetching followed artists: {response_data}")
+                
+                ids = [artist['id'] for artist in response_data['artists']['items']]
+                artist_ids.extend(ids)
+                if not response_data['artists']['next']:
+                    more_artists = False
+                else:
+                    url = response_data['artists']['next']
+            
+            self.artist_id_list = artist_ids
+            log.info("Followed Artists retrieved successfully!")
+        except Exception as err:
+            log.error(f"Get Followed Artists: {err}")
+            raise Exception(f"Get Followed Artists: {err}")
+        
     async def set_top_artists(self):
         try:
             log.info(f"Setting Top Artists for term: {self.term}")
