@@ -1,11 +1,12 @@
 
-import logging
-import inspect
+
 import jwt
-from lambdas.common.constants import AWS_ACCOUNT_ID
+from lambdas.common.constants import AWS_ACCOUNT_ID, LOGGER
 from lambdas.common.ssm_helpers import API_SECRET_KEY
 from lambdas.common.utility_helpers import build_error_handler_response
 from lambdas.common.errors import LambdaAuthorizerError
+
+log = LOGGER.get_logger(__file__)
 
 HANDLER = 'authorizer'
 
@@ -59,7 +60,7 @@ def handler(event, context):
         function = 'handler'
         if len(err.args) > 1:
             function = err.args[1]
-        print('💥 Error in Lambda Authorizer: ' + message)
+        log.error('💥 Error in Lambda Authorizer: ' + message)
         error = LambdaAuthorizerError(message, HANDLER, function)
         build_error_handler_response(str(error))
     return generate_policy('Deny', method_arn)
