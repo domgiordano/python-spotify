@@ -65,7 +65,7 @@ class Playlist:
                 raise Exception(f"Error creating playlist: {response.json()}")
 
             self.playlist = response.json()
-            self.id = self.id
+            self.id = self.playlist['id']
             log.info(f"Playlist Creation Complete. ID: {self.id}")
         except Exception as err:
             log.error(f"Create Playlist: {err}")

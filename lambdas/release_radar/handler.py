@@ -29,6 +29,6 @@ def handler(event, context):
         function = f'handler.{__name__}'
         if len(err.args) > 1:
             function = err.args[1]
-        log.error(traceback.log.error_exc())
+        log.error(traceback.print_exc())
         error = ReleaseRadarError(message, HANDLER, function) if 'Invalid User Input' not in message else ReleaseRadarError(message, HANDLER, function, 400)
         return build_error_handler_response(str(error))
