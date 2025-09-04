@@ -17,7 +17,7 @@ class Spotify:
         log.info(f"Initializing Spotify Client for User {user['email']}.")
         self.client_id: str= SPOTIFY_CLIENT_ID
         self.client_secret: str = SPOTIFY_CLIENT_SECRET
-        self.user_id: str = user['id']
+        self.user_id: str = user['userId']
         self.email: str = user['email']
         self.refresh_token: str = user['refreshToken']
         self.access_token: str = self.get_access_token()
