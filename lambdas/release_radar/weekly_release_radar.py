@@ -3,9 +3,10 @@ from datetime import datetime, timezone
 import time
 import asyncio
 
+from lambdas.common.wrapped_helper import get_active_wrapped_users
 from lambdas.common.ssm_helpers import SPOTIFY_CLIENT_SECRET, SPOTIFY_CLIENT_ID
 from lambdas.common.constants import WRAPPED_TABLE_NAME, BLACK_LOGO_BASE_64
-from lambdas.common.dynamo_helpers import full_table_scan, update_table_item
+from lambdas.common.dynamo_helpers import update_table_item
 
 BASE_URL = "https://api.spotify.com/v1"
 
@@ -79,15 +80,6 @@ def __split_spotify_uris(uris):
     tracks = [id for id in uris if id and id.startswith("spotify:track:")]
     albums = [id for id in uris if id and id.startswith("spotify:album:")]
     return tracks, albums
-
-def get_active_wrapped_users():
-     try:
-        table_values = full_table_scan(WRAPPED_TABLE_NAME)
-        table_values[:] = [item for item in table_values if item['active']]
-        return table_values
-     except Exception as err:
-        print(f"Get Active Wrapped Users: {err}")
-        raise Exception(f"Get Active Wrapped Users: {err}")
 
 def get_access_token(refresh_token):
     try:
