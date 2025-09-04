@@ -25,28 +25,41 @@ class Spotify:
             'Authorization': f'Bearer {self.access_token}',
             'Content-Type': 'application/json'
         }
-        self.top_tracks_short: TrackList = TrackList('short_term')
-        self.top_tracks_medium: TrackList = TrackList('medium_term')
-        self.top_tracks_long: TrackList = TrackList('long_term')
-        self.top_artists_short: ArtistList = ArtistList('short_term')
-        self.top_artists_medium: ArtistList = ArtistList('medium_term')
-        self.top_artists_long: ArtistList = ArtistList('long_term')
+        # Wrapped
+        self.top_tracks_short: TrackList = TrackList('short_term', self.headers)
+        self.top_tracks_medium: TrackList = TrackList('medium_term', self.headers)
+        self.top_tracks_long: TrackList = TrackList('long_term', self.headers)
+        self.top_artists_short: ArtistList = ArtistList('short_term', self.headers)
+        self.top_artists_medium: ArtistList = ArtistList('medium_term', self.headers)
+        self.top_artists_long: ArtistList = ArtistList('long_term', self.headers)
         self.last_month, self.last_month_number, self.this_year = self.__get_last_month_data()
         self.monthly_spotify_playlist: Playlist = Playlist(
             self.user_id,
             f"Xomify {self.last_month}'{self.this_year}", 
-            f"Your Top 25 songs for {self.last_month} - Created by xomify.com"
+            f"Your Top 25 songs for {self.last_month} - Created by xomify.com", 
+            self.headers
         )
         self.first_half_of_year_spotify_playlist: Playlist = Playlist(
             self.user_id,
             f"Xomify First Half '{self.this_year}",
-            f"Your Top 25 songs for the First 6 months of '{self.this_year} - Created by xomify.com"
+            f"Your Top 25 songs for the First 6 months of '{self.this_year} - Created by xomify.com",
+            self.headers
         )
         self.full_year_spotify_playlist: Playlist = Playlist(
             self.user_id,
             f"Xomify 20{self.this_year}",
-            f"Your Top 25 songs for 20{self.this_year} - Created by xomify.com"
+            f"Your Top 25 songs for 20{self.this_year} - Created by xomify.com",
+            self.headers
         )
+        # Release Radar
+        self.release_radar_playlist: Playlist = Playlist(
+            self.user_id,
+            f"Xomify Weekly Release Radar",
+            f"All your followed artists newest songs - Created by xomify.com",
+            self.headers
+        )
+        self.followed_artists: ArtistList = ArtistList('Following', self.headers)
+        self.release_radar_playlist.set_id(user.get('releaseRadarId', None))
         
 
     def get_access_token(self):
