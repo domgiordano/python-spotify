@@ -118,29 +118,23 @@ class Spotify:
         
     def get_top_tracks_ids_last_month(self):
         return {
-            {
-                "short_term": self.top_tracks_short.track_id_list,
-                "med_term": self.top_tracks_medium.track_id_list,
-                "long_term": self.top_tracks_long.track_id_list
-            }
+            "short_term": self.top_tracks_short.track_id_list,
+            "med_term": self.top_tracks_medium.track_id_list,
+            "long_term": self.top_tracks_long.track_id_list
         }
     
     def get_top_artists_ids_last_month(self):
         return {
-            {
-                "short_term": self.top_artists_short.artist_id_list,
-                "med_term": self.top_artists_medium.artist_id_list,
-                "long_term": self.top_artists_long.artist_id_list
-            }
+            "short_term": self.top_artists_short.artist_id_list,
+            "med_term": self.top_artists_medium.artist_id_list,
+            "long_term": self.top_artists_long.artist_id_list
         }
     
     def get_top_genres_last_month(self):
         return {
-            {
-                "short_term": self.top_artists_short.top_genres,
-                "med_term": self.top_artists_medium.top_genres,
-                "long_term": self.top_artists_long.top_genres
-            }
+            "short_term": self.top_artists_short.top_genres,
+            "med_term": self.top_artists_medium.top_genres,
+            "long_term": self.top_artists_long.top_genres
         }
     
     def __get_last_month_data(self):
