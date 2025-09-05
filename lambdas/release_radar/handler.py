@@ -11,7 +11,7 @@ log = LOGGER.get_logger(__file__)
 HANDLER = 'release-radar'
 
 
-async def handler(event, context):
+def handler(event, context):
     try:
 
         # Monthly Wrapped Chron Job
