@@ -138,7 +138,7 @@ def get_item_by_key(table_name, id_key, id_val):
             }
         )
         if 'Item' in response:
-            return response
+            return response['Item']
         else:
             raise Exception("Invalid ID (" + id_val + "): Item Does not Exist.")
     except Exception as err:

@@ -13,7 +13,7 @@ def generate_policy(effect, resource):
     #Return a valid AWS policy response
     #auth_response = {'principalId': principal_id}
     auth_response = {
-        'prinicpalId': PRODUCT,
+        'principalId': PRODUCT,
         'policyDocument': {
             'Version': '2012-10-17',
             'Statement': [
