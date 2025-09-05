@@ -255,3 +255,12 @@ def update_user_table_refresh_token(email: str, refresh_token: str):
 def __get_time_stamp():
     return datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
 
+def get_user_table_data(email: str):
+    try:
+        # Get User Data
+        user = get_item_by_key(WRAPPED_TABLE_NAME, 'email', email)
+        return user
+    except Exception as err:
+        log.error(f"Get User Table Data: {err}")
+        raise Exception(f"Get User Table Data: {err}")
+
