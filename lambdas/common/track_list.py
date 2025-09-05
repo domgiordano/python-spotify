@@ -73,10 +73,9 @@ class TrackList:
 
         # Get all tracks for new albums
         all_tracks_from_albums_uris = await self.get_several_albums_tracks()
-        flattened_uris = [item for sublist in all_tracks_from_albums_uris for item in sublist]
-        log.info(f"All Tracks from Albums: {flattened_uris}")
-        log.info(len(flattened_uris))
-        self.track_uri_list.extend(flattened_uris)
+        log.info(f"All Tracks from Albums: {all_tracks_from_albums_uris}")
+        log.info(len(all_tracks_from_albums_uris))
+        self.track_uri_list.extend(all_tracks_from_albums_uris)
         # Remove Duplicates
         self.final_tracks_uris = list(set(self.track_uri_list))
         log.info(f"All Tracks total: {len(self.final_tracks_uris)}")

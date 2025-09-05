@@ -1,4 +1,3 @@
-
 import asyncio
 import traceback
 from lambdas.common.utility_helpers import build_successful_handler_response, build_error_handler_response
@@ -12,7 +11,7 @@ log = LOGGER.get_logger(__file__)
 HANDLER = 'release-radar'
 
 
-def handler(event, context):
+async def handler(event, context):
     try:
 
         # Monthly Wrapped Chron Job
