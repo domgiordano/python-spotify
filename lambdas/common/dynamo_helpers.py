@@ -247,6 +247,7 @@ def update_user_table_refresh_token(email: str, refresh_token: str):
         # Time Stamp
         user['updatedAt'] = __get_time_stamp()
         update_table_item(WRAPPED_TABLE_NAME, user)
+        return user
     except Exception as err:
         log.error(f"Update User Table Refresh Token: {err}")
         raise Exception(f"Update User Table Refresh Token: {err}")
