@@ -26,7 +26,7 @@ class ArtistList:
     
     async def get_followed_artist_latest_release(self):
         try:
-            self.artist_tracks.get_artist_latest_release(self.artist_id_list)
+            await self.artist_tracks.get_artist_latest_release(self.artist_id_list)
         except Exception as err:
             log.error(f"Get Followed Artists Latest Release: {err}")
             raise Exception(f"Get Followed Artists Latest Release: {err}")

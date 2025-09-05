@@ -21,23 +21,23 @@ async def release_radar_chron_job(event):
             log.info(f"Found User: {user}")
             spotify = Spotify(user)
 
-            asyncio.run(spotify.followed_artists.get_followed_artists())
+            await spotify.followed_artists.get_followed_artists()
 
             log.info(f"Followed Artist IDs found: {len(spotify.followed_artists.artist_id_list)}")
             
-            asyncio.run(spotify.followed_artists.get_followed_artist_latest_release())
+            await spotify.followed_artists.get_followed_artist_latest_release()
 
             if not spotify.release_radar_playlist.id:
                 log.info("No Release Radar Playlist ID found yet.")
                 
-                spotify.release_radar_playlist.build_playlist(spotify.followed_artists.artist_tracks.final_tracks_uris, BLACK_LOGO_BASE_64)
+                await spotify.release_radar_playlist.build_playlist(spotify.followed_artists.artist_tracks.final_tracks_uris, BLACK_LOGO_BASE_64)
                 # Update the User
                 update_user_table_entry(user, spotify.release_radar_playlist.id)
                 log.info(f"User Table updated with playlist id {spotify.release_radar_playlist.id}")
             else:
                 log.info(f"Playlist ID found: {spotify.release_radar_playlist.id}")
                 # Erase Playlist songs
-                spotify.release_radar_playlist.update_playlist(spotify.followed_artists.artist_tracks.final_tracks_uris)
+                await spotify.release_radar_playlist.update_playlist(spotify.followed_artists.artist_tracks.final_tracks_uris)
             
             
             response.append(spotify.email)

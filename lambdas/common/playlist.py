@@ -1,6 +1,5 @@
 import requests
 import time
-import asyncio
 from lambdas.common.constants import LOGGER
 
 log = LOGGER.get_logger(__file__)
@@ -25,11 +24,11 @@ class Playlist:
             log.info(f"Building playlist: {self.name}")
             self.uri_list = uri_list
             self.image = image
-            asyncio.run(self.create_playlist())
+            await self.create_playlist()
             time.sleep(2)
-            asyncio.run(self.add_playlist_image())
+            await self.add_playlist_image()
             time.sleep(2)
-            asyncio.run(self.add_playlist_songs())
+            await self.add_playlist_songs()
             log.info(f"Playlist '{self.name}' Complete!")
         except Exception as err:
             log.error(f"Build Playlist: {err}")
@@ -38,9 +37,9 @@ class Playlist:
         try:
             log.info(f"Updating playlist: {self.name}")
             self.uri_list = uri_list
-            asyncio.run(self.delete_playlist_songs())
+            await self.delete_playlist_songs()
             time.sleep(1)
-            asyncio.run(self.add_playlist_songs())
+            await self.add_playlist_songs()
             log.info(f"Playlist '{self.name}' Complete!")
         except Exception as err:
             log.error(f"Update Playlist: {err}")
