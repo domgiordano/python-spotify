@@ -1,6 +1,5 @@
-import requests
+
 from datetime import datetime, timezone
-import asyncio
 
 from lambdas.common.wrapped_helper import get_active_wrapped_users
 from lambdas.common.spotify import Spotify
