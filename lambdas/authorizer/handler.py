@@ -3,7 +3,6 @@
 import jwt
 from lambdas.common.constants import LOGGER, PRODUCT
 from lambdas.common.ssm_helpers import API_SECRET_KEY
-from lambdas.common.utility_helpers import build_error_handler_response
 from lambdas.common.errors import LambdaAuthorizerError
 
 log = LOGGER.get_logger(__file__)
@@ -45,8 +44,7 @@ def decode_auth_token(auth_token):
 def handler(event, context):
     try:
         method_arn = event.get('methodArn', '')
-        headers = event.get('headers', '')
-        auth_token = headers['Authorization']
+        auth_token = event.get('authorizationToken', '')
         
         if auth_token and method_arn:
             # verify the JWT - only for whitelisted endpoints
