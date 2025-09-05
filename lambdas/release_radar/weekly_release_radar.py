@@ -1,8 +1,8 @@
 
 import asyncio
-from lambdas.common.wrapped_helper import get_active_wrapped_users
+from lambdas.common.wrapped_helper import get_active_release_radar_users
 from lambdas.common.spotify import Spotify
-from lambdas.common.constants import WRAPPED_TABLE_NAME, BLACK_LOGO_BASE_64, LOGGER
+from lambdas.common.constants import BLACK_LOGO_BASE_64, LOGGER
 from lambdas.common.dynamo_helpers import update_user_table_release_radar_id
 
 
@@ -14,8 +14,8 @@ async def release_radar_chron_job(event):
     try:
         log.info("Starting Release Radar Chron Job...")
         response = []
-        wrapped_users = get_active_wrapped_users()
-        tasks = [process_user(user) for user in wrapped_users]
+        release_radar_users = get_active_release_radar_users()
+        tasks = [process_user(user) for user in release_radar_users]
         response = await asyncio.gather(*tasks, return_exceptions=True)
         log.info(f"Full Response Complete for Users: {response}")
 

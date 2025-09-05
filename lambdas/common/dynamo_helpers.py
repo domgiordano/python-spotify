@@ -252,6 +252,22 @@ def update_user_table_refresh_token(email: str, refresh_token: str):
         log.error(f"Update User Table Refresh Token: {err}")
         raise Exception(f"Update User Table Refresh Token: {err}")
     
+def update_user_table_enrollments(email: str, wrapped_enrolled: bool, release_radar_enrolled: bool):
+    try:
+        # Get User Data
+        user = get_item_by_key(WRAPPED_TABLE_NAME, 'email', email)
+        # Release Radar Id
+        user['activeWrapped'] = wrapped_enrolled
+        # Active
+        user['activeReleaseRadar'] = release_radar_enrolled
+        # Time Stamp
+        user['updatedAt'] = __get_time_stamp()
+        update_table_item(WRAPPED_TABLE_NAME, user)
+        return user
+    except Exception as err:
+        log.error(f"Update User Table Refresh Token: {err}")
+        raise Exception(f"Update User Table Refresh Token: {err}")
+    
     
 def __get_time_stamp():
     return datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
