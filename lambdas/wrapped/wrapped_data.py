@@ -18,7 +18,7 @@ def update_wrapped_data(data: dict, optional_fields={}):
         else:
             raise Exception('Failed to Opt User into Monthly Wrapped')
     except Exception as err:
-        log.error(f"{err}")
+        log.error(f"Update Wrapped Data: {err}")
         raise Exception(f"Update Wrapped Data: {err}")
 
 def get_wrapped_data(email: str):
@@ -29,7 +29,7 @@ def get_wrapped_data(email: str):
         else:
             return {'active': False}
     except Exception as err:
-        log.error(f"{err}")
+        log.error(f"Get Wrapped Data: {err}")
         raise Exception(f"Get Wrapped Data: {err}")
 
 def add_time_stamp(data):
