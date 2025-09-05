@@ -7,9 +7,20 @@ def get_active_wrapped_users():
      try:
         log.info("Geting active wrapped users...")
         table_values = full_table_scan(WRAPPED_TABLE_NAME)
-        table_values[:] = [item for item in table_values if item['active']]
+        table_values[:] = [item for item in table_values if item['activeWrapped']]
         log.info(f"Found {len(table_values)} active users!")
         return table_values
      except Exception as err:
         log.error(f"Get Active Wrapped Users: {err}")
         raise Exception(f"Get Active Wrapped Users: {err}")
+     
+def get_active_release_radar_users():
+     try:
+        log.info("Geting active release radar users...")
+        table_values = full_table_scan(WRAPPED_TABLE_NAME)
+        table_values[:] = [item for item in table_values if item['activeReleaseRadar']]
+        log.info(f"Found {len(table_values)} active users!")
+        return table_values
+     except Exception as err:
+        log.error(f"Get Active Release Radar Users: {err}")
+        raise Exception(f"Get Active Release Radar Users: {err}")
