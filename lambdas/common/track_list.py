@@ -101,9 +101,15 @@ class TrackList:
             
             release_uris = []
             for release in response_data['items']:
+                for artist in release['artists']:
+                    log.info(f"Artist: {artist['name']}")
+                log.info(f"Album: {release['name']}")
+                log.info(f"Release Date: {release['release_date']}")
                 if self.__is_within_a_week(release['release_date']):
+                    log.info("New Release Added.")
                     release_uris.append(release['uri'])
-            
+                else:
+                    log.info("Old Release Skipped.")
             return release_uris
 
         except Exception as err:
@@ -133,8 +139,10 @@ class TrackList:
             log.error(f"Get Album Tracks: {err}")
             raise Exception(f"Get Album Tracks: {err}")
 
-    def __is_within_a_week(self, target_date_str):
+    def __is_within_a_week(self, target_date_str: str):
         try:
+            if len(target_date_str) < 8:
+                return False
             today = datetime.today().date()
             target_date = datetime.strptime(target_date_str, '%Y-%m-%d').date()
 
