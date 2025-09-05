@@ -72,8 +72,7 @@ class TrackList:
         log.info(len(self.track_uri_list))
 
         # Get all tracks for new albums
-        tasks = [self.get_several_albums_tracks(uri) for uri in self.album_uri_list]
-        all_tracks_from_albums_uris = await asyncio.gather(*tasks)
+        all_tracks_from_albums_uris = await self.get_several_albums_tracks()
         flattened_uris = [item for sublist in all_tracks_from_albums_uris for item in sublist]
         log.info(f"All Tracks from Albums: {flattened_uris}")
         log.info(len(flattened_uris))
@@ -139,10 +138,10 @@ class TrackList:
             log.error(f"Get Album Tracks: {err}")
             raise Exception(f"Get Album Tracks: {err}")
         
-    async def get_several_albums_tracks(self, album_uris: list[str]):
+    async def get_several_albums_tracks(self):
         try:
             # Extract album IDs from URIs
-            album_ids = [uri.split(":")[2] for uri in album_uris]
+            album_ids = [uri.split(":")[2] for uri in self.album_uri_list]
 
             track_uris = []
 
