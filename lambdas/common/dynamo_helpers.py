@@ -1,6 +1,6 @@
-
+from datetime import datetime, timezone
 import boto3
-from lambdas.common.constants import AWS_DEFAULT_REGION, DYNAMODB_KMS_ALIAS, LOGGER
+from lambdas.common.constants import AWS_DEFAULT_REGION, DYNAMODB_KMS_ALIAS, LOGGER, WRAPPED_TABLE_NAME
 
 log = LOGGER.get_logger(__file__)
 
@@ -222,3 +222,36 @@ def createTable(table_name, hash_key, hash_key_type):
     except Exception as err:
         log.error(f"Dynamodb Table Create Table: {err}")
         raise Exception(f"Dynamodb Table Create Table: {err}")
+    
+
+## USER TABLE
+def update_user_table_release_radar_id(user: dict, playlist_id: str):
+    try:
+        # Release Radar Id
+        user['releaseRadarId'] = playlist_id
+        # Time Stamp
+        user['updatedAt'] = __get_time_stamp()
+        update_table_item(WRAPPED_TABLE_NAME, user)
+    except Exception as err:
+        log.error(f"Update User Table Entry: {err}")
+        raise Exception(f"Update User Table Entry: {err}")
+    
+def update_user_table_refresh_token(email: str, refresh_token: str):
+    try:
+        # Get User Data
+        user = get_item_by_key(WRAPPED_TABLE_NAME, 'email', email)
+        # Release Radar Id
+        user['refreshToken'] = refresh_token
+        # Active
+        user['active'] = True
+        # Time Stamp
+        user['updatedAt'] = __get_time_stamp()
+        update_table_item(WRAPPED_TABLE_NAME, user)
+    except Exception as err:
+        log.error(f"Update User Table Refresh Token: {err}")
+        raise Exception(f"Update User Table Refresh Token: {err}")
+    
+    
+def __get_time_stamp():
+    return datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
+
