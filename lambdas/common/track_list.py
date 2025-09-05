@@ -148,8 +148,8 @@ class TrackList:
 
             # Calculate the absolute difference in days
             difference_in_days = abs((today - target_date).days)
-            log.info(difference_in_days <= 7)
-            return difference_in_days <= 7
+            log.info(difference_in_days < 7)
+            return difference_in_days < 7
         except Exception as err:
             log.error(f"Is Date Within a week: {err}")
             raise Exception(f"Is Date Within a week: {err}")
