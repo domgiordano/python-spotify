@@ -25,7 +25,7 @@ def get_wrapped_data(email: str):
     try:
         if check_if_item_exist(WRAPPED_TABLE_NAME, 'email', email, True):
             response = get_item_by_key(WRAPPED_TABLE_NAME, 'email', email)
-            return response['Item']
+            return response
         else:
             return {'active': False}
     except Exception as err:
