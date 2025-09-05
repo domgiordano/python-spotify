@@ -73,7 +73,7 @@ class Playlist:
 
     async def add_playlist_songs(self):
         try:
-
+            log.info(f"Adding {len(self.uri_list)} songs to Playlist '{self.name}'")
             # Define batch size
             batch_size = 100
 

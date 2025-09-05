@@ -33,7 +33,7 @@ class TrackList:
             self.track_uri_list = self.__get_uri_list()
             self.track_id_list = self.__get_id_list()
             self.number_of_tracks = len(self.track_list)
-            log.info("Top Tracks Set successfully!")
+            log.info(f"{self.number_of_tracks} Top Tracks Set successfully for term {self.term}!")
         except Exception as err:
             log.error(f"Set User Top Tracks: {err}")
             raise Exception(f"Set User Top Tracks {self.term}: {err}")
