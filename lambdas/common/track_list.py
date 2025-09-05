@@ -72,7 +72,7 @@ class TrackList:
         log.info(len(self.track_uri_list))
 
         # Get all tracks for new albums
-        tasks = [self.get_album_tracks(uri) for uri in self.album_uri_list]
+        tasks = [self.get_several_albums_tracks(uri) for uri in self.album_uri_list]
         all_tracks_from_albums_uris = await asyncio.gather(*tasks)
         flattened_uris = [item for sublist in all_tracks_from_albums_uris for item in sublist]
         log.info(f"All Tracks from Albums: {flattened_uris}")
@@ -138,6 +138,41 @@ class TrackList:
         except Exception as err:
             log.error(f"Get Album Tracks: {err}")
             raise Exception(f"Get Album Tracks: {err}")
+        
+    async def get_several_albums_tracks(self, album_uris: list[str]):
+        try:
+            # Extract album IDs from URIs
+            album_ids = [uri.split(":")[2] for uri in album_uris]
+
+            track_uris = []
+
+            # Spotify only allows up to 20 album IDs at a time
+            for i in range(0, len(album_ids), 20):
+                batch_ids = album_ids[i:i+20]
+                ids_param = ",".join(batch_ids)
+                url = f"{self.BASE_URL}/albums?ids={ids_param}"
+
+                # Make the request
+                response = requests.get(url, headers=self.headers)
+                response_data = response.json()
+
+                # Check for errors
+                if response.status_code != 200:
+                    raise Exception(f"Error fetching albums: {response_data}")
+
+                # Collect tracks from each album
+                for album in response_data["albums"]:
+                    # For singles, only add the single (sometimes have other songs in there)
+                    if album['album_type'] == 'single':
+                        track_uris.append(album["tracks"]["items"][0]['uri'])
+                    else:
+                        for track in album["tracks"]["items"]:
+                            track_uris.append(track["uri"])
+
+            return track_uris
+        except Exception as err:
+            log.error(f"Get Several Albums Tracks: {err}")
+            raise Exception(f"Get Several Albums Tracks: {err}")
 
     def __is_within_a_week(self, target_date_str: str):
         try:
