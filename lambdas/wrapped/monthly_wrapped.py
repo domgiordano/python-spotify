@@ -1,6 +1,5 @@
 
-import traceback
-import inspect
+
 from datetime import datetime, timezone
 import asyncio
 
@@ -20,8 +19,8 @@ async def wrapped_chron_job(event):
             log.info(f"Found User: {user}")
             spotify = Spotify(user)
 
-            await asyncio.run(spotify.get_top_tracks())
-            await asyncio.run(spotify.get_top_artists())
+            await spotify.get_top_tracks()
+            await spotify.get_top_artists()
 
             tasks = [
                 spotify.monthly_spotify_playlist.build_playlist(spotify.top_tracks_short.track_uri_list, LOGO_BASE_64)
