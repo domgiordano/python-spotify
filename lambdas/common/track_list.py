@@ -58,13 +58,14 @@ class TrackList:
         
     async def get_artist_latest_release(self, artist_id_list: list):
         log.info("Getting artsist releases within the last week...")
-        tasks = [self.get_latest_release(id) for id in artist_id_list]
+        tasks = [self.get_latest_releases(id) for id in artist_id_list]
         # Get all ids of latest releases for the week
         artist_latest_release_uris = await asyncio.gather(*tasks)
-        log.info(f"Latest Release IDs: {artist_latest_release_uris}")
-        log.info(len(artist_latest_release_uris))
+        combined_artist_latest_release_uris = [item for sublist in artist_latest_release_uris for item in sublist]
+        log.info(f"Latest Release IDs: {combined_artist_latest_release_uris}")
+        log.info(len(combined_artist_latest_release_uris))
         # Remove None values - split lists
-        self.track_uri_list, self.album_uri_list = self.__split_spotify_uris(artist_latest_release_uris)
+        self.track_uri_list, self.album_uri_list = self.__split_spotify_uris(combined_artist_latest_release_uris)
         log.info(f"Latest Release Albums: {self.album_uri_list}")
         log.info(len(self.album_uri_list))
         log.info(f"Latest Release Tracks: {self.track_uri_list}")
@@ -82,9 +83,9 @@ class TrackList:
         log.info(f"All Tracks total: {len(self.final_tracks_uris)}")
 
     
-    async def get_latest_release(self, artist_id):
+    async def get_latest_releases(self, artist_id):
         try:
-            url = f"{self.BASE_URL}/artists/{artist_id}/albums?limit=1&offset=0"
+            url = f"{self.BASE_URL}/artists/{artist_id}/albums?limit=3&offset=0"
 
             # Make the request
             response = requests.get(url, headers=self.headers)
@@ -98,10 +99,12 @@ class TrackList:
             if response.status_code != 200:
                 raise Exception(f"Error fetching artist latest release: {response}")
             
-            if self.__is_within_a_week(response_data['items'][0]['release_date']):
-                return response_data['items'][0]['uri']
-            else:
-                return None
+            release_uris = []
+            for release in response_data['items']:
+                if self.__is_within_a_week(release['release_date']):
+                    release_uris.append(release['uri'])
+            
+            return release_uris
 
         except Exception as err:
             log.error(f"Get Artist Latest Release: {err}")
