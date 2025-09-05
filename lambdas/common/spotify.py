@@ -96,7 +96,7 @@ class Spotify:
                 self.top_tracks_medium.set_top_tracks(),
                 self.top_tracks_long.set_top_tracks()
             ]
-            asyncio.gather(*tasks)
+            await asyncio.gather(*tasks)
             log.info("Top Tracked Retrieved!")
         except Exception as err:
             log.error(f"Get Top Tracks: {err}")
@@ -110,7 +110,7 @@ class Spotify:
                 self.top_artists_medium.set_top_artists(),
                 self.top_artists_long.set_top_artists()
             ]
-            asyncio.gather(*tasks)
+            await asyncio.gather(*tasks)
             log.info("Top Artists Retrieved!")
         except Exception as err:
             log.error(f"Get Top Tracks: {err}")
