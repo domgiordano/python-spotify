@@ -239,7 +239,9 @@ def update_user_table_release_radar_id(user: dict, playlist_id: str):
 def update_user_table_refresh_token(email: str, refresh_token: str):
     try:
         # Get User Data
-        user = get_item_by_key(WRAPPED_TABLE_NAME, 'email', email)
+        user_exists = check_if_item_exist(WRAPPED_TABLE_NAME, 'email', email, True)
+        user = get_item_by_key(WRAPPED_TABLE_NAME, 'email', email) if user_exists else {}
+        user['email'] = email
         # Release Radar Id
         user['refreshToken'] = refresh_token
         # Active
