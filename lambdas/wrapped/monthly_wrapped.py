@@ -54,13 +54,13 @@ async def wrapped_chron_job(event):
 
 def __update_user_table_entry(user, top_tracks_last_month, top_artists_last_month, top_genres_last_month):
     # Tracks
-    user['topSongIdsTwoMonthsAgo'] = user['topSongIdsLastMonth']
+    user['topSongIdsTwoMonthsAgo'] = user.get('topSongIdsLastMonth', {})
     user['topSongIdsLastMonth'] = top_tracks_last_month
     # Artists
-    user['topArtistIdsTwoMonthsAgo'] = user['topArtistIdsLastMonth']
+    user['topArtistIdsTwoMonthsAgo'] = user.get('topArtistIdsLastMonth', {})
     user['topArtistIdsLastMonth'] = top_artists_last_month
     # Genres
-    user['topGenresTwoMonthsAgo'] = user['topGenresLastMonth']
+    user['topGenresTwoMonthsAgo'] = user.get('topGenresLastMonth', {})
     user['topGenresLastMonth'] = top_genres_last_month
     # Time Stamp
     user['updatedAt'] = get_time_stamp()
