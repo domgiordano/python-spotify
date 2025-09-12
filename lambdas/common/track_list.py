@@ -295,14 +295,17 @@ class TrackList:
         try:
             album_ids = [uri.split(":")[2] for uri in self.album_uri_list]
             track_uris = []
-
+            print("ALBUM IDS------------")
+            print(album_ids)
             for i in range(0, len(album_ids), 20):
                 batch_ids = album_ids[i:i+20]
                 ids_param = ",".join(batch_ids)
                 url = f"{self.BASE_URL}/albums?ids={ids_param}"
-
+                print("URL-------")
+                print(url)
                 data = await fetch_json(self.aiohttp_session, url, headers=self.headers)
-
+                print("DATA-----------")
+                print(data)
                 for album in data["albums"]:
                     if not album or "tracks" not in album:
                         continue
