@@ -22,8 +22,8 @@ class Spotify:
         self.user_id: str = user['userId']
         self.email: str = user['email']
         self.refresh_token: str = user['refreshToken']
-        self.access_token: str = None if self.aiohttp_session else self.get_access_token()
-        self.headers: dict = {} if self.aiohttp_session else {
+        self.access_token: str = self.get_access_token()
+        self.headers: dict = {
             'Authorization': f'Bearer {self.access_token}',
             'Content-Type': 'application/json'
         }
@@ -66,17 +66,7 @@ class Spotify:
         )
         self.followed_artists: ArtistList = ArtistList('Following', self.headers, self.aiohttp_session)
         self.release_radar_playlist.set_id(user.get('releaseRadarId', None))
-        
-    async def aiohttp_initialize(self):
-        try:
-            self.access_token = await self.aiohttp_get_access_token()
-            self.headers = {
-                'Authorization': f'Bearer {self.access_token}',
-                'Content-Type': 'application/json'
-            }
-        except Exception as err:
-            log.error(f"AIOHTTP Initialize Spotify Token: {err}")
-            raise Exception(f"AIOHTTP Initialize Spotify Token: {err}") from err
+
     def get_access_token(self):
         try:
             log.info("Getting spotify access token..")
