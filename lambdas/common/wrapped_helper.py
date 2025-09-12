@@ -12,7 +12,7 @@ def get_active_wrapped_users():
         return table_values
      except Exception as err:
         log.error(f"Get Active Wrapped Users: {err}")
-        raise Exception(f"Get Active Wrapped Users: {err}")
+        raise Exception(f"Get Active Wrapped Users: {err}") from err
      
 def get_active_release_radar_users():
      try:
@@ -23,4 +23,4 @@ def get_active_release_radar_users():
         return table_values
      except Exception as err:
         log.error(f"Get Active Release Radar Users: {err}")
-        raise Exception(f"Get Active Release Radar Users: {err}")
+        raise Exception(f"Get Active Release Radar Users: {err}") from err

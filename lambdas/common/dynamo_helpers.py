@@ -30,7 +30,7 @@ def full_table_scan(table_name, **kwargs):
         return data
     except Exception as err:
         log.error(f"Dynamodb Full Table Scan: {err}")
-        raise Exception(f"Dynamodb Full Table Scan: {err}")
+        raise Exception(f"Dynamodb Full Table Scan: {err}") from err
 def table_scan_by_ids(table_name, key, ids, goal_filter, **kwargs):
     try:
         table = dynamodb_res.Table(table_name)
@@ -55,7 +55,7 @@ def table_scan_by_ids(table_name, key, ids, goal_filter, **kwargs):
         return data
     except Exception as err:
         log.error(f"Dynamodb Table Scan by IDs: {err}")
-        raise Exception(f"Dynamodb Table Scan by IDs: {err}")
+        raise Exception(f"Dynamodb Table Scan by IDs: {err}") from err
 
 # Update Entire Table Item - Send in full dict of item
 def delete_table_item(table_name, primary_key, primary_key_value):
@@ -70,7 +70,7 @@ def delete_table_item(table_name, primary_key, primary_key_value):
         return response
     except Exception as err:
         log.error(f"Dynamodb Table Delete Table Item: {err}")
-        raise Exception(f"Dynamodb Table Delete Table Item: {err}")
+        raise Exception(f"Dynamodb Table Delete Table Item: {err}") from err
 
 
 # Update Entire Table Item - Send in full dict of item
@@ -83,7 +83,7 @@ def update_table_item(table_name, table_item):
         return response
     except Exception as err:
         log.error(f"Dynamodb Table Update Table Item: {err}")
-        raise Exception(f"Dynamodb Table Update Table Item: {err}")
+        raise Exception(f"Dynamodb Table Update Table Item: {err}") from err
 
 
 # Update single field of Table - send in one attribute and key
@@ -108,7 +108,7 @@ def update_table_item_field(table_name, primary_key, primary_key_value, attr_key
         return response
     except Exception as err:
         log.error(f"Dynamodb Table Update Table Item Field: {err}")
-        raise Exception(f"Dynamodb Table Update Table Item Field: {err}")
+        raise Exception(f"Dynamodb Table Update Table Item Field: {err}") from err
 
 def check_if_item_exist(table_name, id_key, id_val, override=False):
     try:
@@ -126,7 +126,7 @@ def check_if_item_exist(table_name, id_key, id_val, override=False):
             raise Exception("Invalid ID (" + id_val + "): Item Does not Exist.")
     except Exception as err:
         log.error(f"Dynamodb Table Check If Item Exists: {err}")
-        raise Exception(f"Dynamodb Table Check If Item Exists: {err}")
+        raise Exception(f"Dynamodb Table Check If Item Exists: {err}") from err
 
 def get_item_by_key(table_name, id_key, id_val):
     try:
@@ -143,7 +143,7 @@ def get_item_by_key(table_name, id_key, id_val):
             raise Exception("Invalid ID (" + id_val + "): Item Does not Exist.")
     except Exception as err:
         log.error(f"Dynamodb Table Get Item By Key: {err}")
-        raise Exception(f"Dynamodb Table Get Item By Key: {err}")
+        raise Exception(f"Dynamodb Table Get Item By Key: {err}") from err
 
 def query_table_by_key(table_name, id_key, id_val, ascending=False):
     try:
@@ -155,7 +155,7 @@ def query_table_by_key(table_name, id_key, id_val, ascending=False):
         return response
     except Exception as err:
         log.error(f"Dynamodb Table Query Table By Key: {err}")
-        raise Exception(f"Dynamodb Query Table Item By Key: {err}")
+        raise Exception(f"Dynamodb Query Table Item By Key: {err}") from err
 def item_has_property(item, property):
     for field in item:
         if field == property:
@@ -177,7 +177,7 @@ def deleteTable(table_name):
         return dynamodb_client.delete_table(TableName=table_name)
     except Exception as err:
         log.error(f"Dynamodb Table Delete Table: {err}")
-        raise Exception(f"Dynamodb Table Delete Table: {err}")
+        raise Exception(f"Dynamodb Table Delete Table: {err}") from err
 def createTable(table_name, hash_key, hash_key_type):
     try:
         #Wait for table to be deleted
@@ -221,7 +221,7 @@ def createTable(table_name, hash_key, hash_key_type):
         return table
     except Exception as err:
         log.error(f"Dynamodb Table Create Table: {err}")
-        raise Exception(f"Dynamodb Table Create Table: {err}")
+        raise Exception(f"Dynamodb Table Create Table: {err}") from err
     
 
 ## USER TABLE
@@ -234,7 +234,7 @@ def update_user_table_release_radar_id(user: dict, playlist_id: str):
         update_table_item(WRAPPED_TABLE_NAME, user)
     except Exception as err:
         log.error(f"Update User Table Entry: {err}")
-        raise Exception(f"Update User Table Entry: {err}")
+        raise Exception(f"Update User Table Entry: {err}") from err
     
 def update_user_table_refresh_token(email: str, user_id: str,  refresh_token: str):
     try:
@@ -255,7 +255,7 @@ def update_user_table_refresh_token(email: str, user_id: str,  refresh_token: st
         return user
     except Exception as err:
         log.error(f"Update User Table Refresh Token: {err}")
-        raise Exception(f"Update User Table Refresh Token: {err}")
+        raise Exception(f"Update User Table Refresh Token: {err}") from err
     
 def update_user_table_enrollments(email: str, wrapped_enrolled: bool, release_radar_enrolled: bool):
     try:
@@ -271,7 +271,7 @@ def update_user_table_enrollments(email: str, wrapped_enrolled: bool, release_ra
         return user
     except Exception as err:
         log.error(f"Update User Table Refresh Token: {err}")
-        raise Exception(f"Update User Table Refresh Token: {err}")
+        raise Exception(f"Update User Table Refresh Token: {err}") from err
     
     
 def __get_time_stamp():
@@ -284,5 +284,5 @@ def get_user_table_data(email: str):
         return user
     except Exception as err:
         log.error(f"Get User Table Data: {err}")
-        raise Exception(f"Get User Table Data: {err}")
+        raise Exception(f"Get User Table Data: {err}") from err
 
