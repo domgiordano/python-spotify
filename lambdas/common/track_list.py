@@ -277,6 +277,8 @@ class TrackList:
 
                 # Collect tracks from each album
                 for album in response_data["albums"]:
+                    if not album or "tracks" not in album:
+                        continue
                     # For singles, only add the single (sometimes have other songs in there)
                     if album['album_type'] == 'single':
                         track_uris.append(album["tracks"]["items"][0]['uri'])
@@ -302,6 +304,8 @@ class TrackList:
                 data = await fetch_json(self.aiohttp_session, url, headers=self.headers)
 
                 for album in data["albums"]:
+                    if not album or "tracks" not in album:
+                        continue
                     if album['album_type'] == 'single':
                         track_uris.append(album["tracks"]["items"][0]['uri'])
                     else:
