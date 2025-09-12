@@ -236,13 +236,16 @@ def update_user_table_release_radar_id(user: dict, playlist_id: str):
         log.error(f"Update User Table Entry: {err}")
         raise Exception(f"Update User Table Entry: {err}")
     
-def update_user_table_refresh_token(email: str, refresh_token: str):
+def update_user_table_refresh_token(email: str, user_id: str,  refresh_token: str):
     try:
         # Get User Data
         user_exists = check_if_item_exist(WRAPPED_TABLE_NAME, 'email', email, True)
         user = get_item_by_key(WRAPPED_TABLE_NAME, 'email', email) if user_exists else {}
+        # Email
         user['email'] = email
-        # Release Radar Id
+        # ID
+        user['userId'] = user_id
+        # Refresh Token
         user['refreshToken'] = refresh_token
         # Active
         user['active'] = True

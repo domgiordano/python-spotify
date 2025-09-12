@@ -29,15 +29,15 @@ def handler(event, context):
 
                 event_body = json.loads(body)
                 required_fields = {"email"}
-                optional_fields = {"refreshToken", "wrappedEnrolled", "releaseRadarEnrolled"}
+                optional_fields = {"refreshToken", "userId", "wrappedEnrolled", "releaseRadarEnrolled"}
 
                 if not validate_input(event_body, required_fields, optional_fields):
                     raise Exception("Invalid User Input - missing required field or contains extra field.")
                 
                 if 'wrappedEnrolled' in event_body and 'releaseRadarEnrolled' in event_body:
                     response = update_user_table_enrollments(event_body['email'], event_body['wrappedEnrolled'], event_body['releaseRadarEnrolled'])
-                elif 'refreshToken' in event_body:
-                    response = update_user_table_refresh_token(event_body['email'], event_body['refreshToken'])
+                elif 'refreshToken' in event_body and 'userId' in event_body:
+                    response = update_user_table_refresh_token(event_body['email'], event_body['userId'], event_body['refreshToken'])
                 else:
                     raise Exception("Invalid User Input - incorrect combination or types of inputs.")
             # GET user table
