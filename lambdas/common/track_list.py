@@ -129,22 +129,31 @@ class TrackList:
         try:
             log.info("Getting artist releases within the last week...")
             tasks = [self.aiohttp_get_latest_releases(artist_id) for artist_id in artist_id_list]
+
+            # Get all ids of latest releases for the week
             artist_latest_release_uris = await asyncio.gather(*tasks, return_exceptions=True)
+            combined_artist_latest_release_uris = [item for sublist in artist_latest_release_uris for item in sublist]
+            log.debug(f"Latest Release IDs: {combined_artist_latest_release_uris}")
+            log.debug(len(combined_artist_latest_release_uris))
 
-            combined = []
-            for res in artist_latest_release_uris:
-                if isinstance(res, Exception):
-                    log.error(f"Error fetching artist release: {res}")
-                    continue
-                combined.extend(res)
+            # Remove None values - split lists
+            self.track_uri_list, temp_album_uri_list = self.__split_spotify_uris(combined_artist_latest_release_uris)
+            log.debug(f"Albums with Duplicates: {temp_album_uri_list}")
 
-            # Split into tracks vs albums
-            self.track_uri_list, temp_album_uri_list = self.__split_spotify_uris(combined)
-            # Dedup albums
+            # Remove Duplicate Albums
             self.album_uri_list = list(set(temp_album_uri_list))
+            log.debug(f"Latest Release Albums: {self.album_uri_list}")
+            log.debug(len(self.album_uri_list))
+            log.debug(f"Latest Release Tracks: {self.track_uri_list}")
+            log.debug(len(self.track_uri_list))
 
-            all_tracks_from_albums_uris = await self.aiohttp_get_several_albums_tracks()
+            # Get all tracks for new albums
+            all_tracks_from_albums_uris = await self.get_several_albums_tracks()
+            log.debug(f"All Tracks from Albums: {all_tracks_from_albums_uris}")
+            log.debug(len(all_tracks_from_albums_uris))
             self.track_uri_list.extend(all_tracks_from_albums_uris)
+
+             # Remove Duplicates
             self.final_tracks_uris = list(set(self.track_uri_list))
             log.info(f"All Tracks total: {len(self.final_tracks_uris)}")
         except Exception as err:
