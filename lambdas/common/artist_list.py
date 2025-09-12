@@ -89,7 +89,8 @@ class ArtistList:
                 if after:
                     params["after"] = after
                 data = await fetch_json(self.aiohttp_session, url, headers=self.headers, params=params)
-                artist_ids.extend(data["artists"]["items"])
+                ids = [artist['id'] for artist in data['artists']['items']]
+                artist_ids.extend(ids)
                 if not data["artists"]["cursors"].get("after"):
                     break
                 after = data["artists"]["cursors"]["after"]
