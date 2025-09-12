@@ -157,6 +157,9 @@ class Playlist:
 
     async def aiohttp_add_playlist_songs(self):
         try:
+            if len(self.uri_list) == 0:
+                log.info("No Tracks to add this week. Skipping.")
+                return
             log.info(f"Adding {len(self.uri_list)} songs to Playlist '{self.name}' (aiohttp)")
             batch_size = 100
             url = f"{self.BASE_URL}/playlists/{self.id}/tracks"
