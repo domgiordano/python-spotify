@@ -32,7 +32,7 @@ async def post_json(session: aiohttp.ClientSession, url: str, headers: dict = No
                 await asyncio.sleep(retry_after + 1)
                 return await post_json(session, url, headers, json)
 
-            if resp.status != 200 or resp.status != 201:
+            if resp.status != 200 and resp.status != 201:
                 text = await resp.text()
                 raise Exception(f"Spotify API error {resp.status} at {url}: {text}")
 
