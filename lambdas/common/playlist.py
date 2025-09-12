@@ -117,7 +117,7 @@ class Playlist:
             log.info("Creating playlist (aiohttp)..")
             url = f"{self.BASE_URL}/users/{self.user_id}/playlists"
             body = {"name": self.name, "description": self.description, "public": True}
-            data = await post_json(self.aiohttp_session, url, json=body, headers=self.headers)
+            data = await post_json(self.aiohttp_session, url, headers=self.headers, data=body,)
             self.playlist = data
             self.id = self.playlist['id']
             log.info(f"AIOHTTP Playlist Creation Complete. ID: {self.id}")
@@ -163,7 +163,7 @@ class Playlist:
             for i in range(0, len(self.uri_list), batch_size):
                 batch_uris = self.uri_list[i:i+batch_size]
                 body = {"uris": batch_uris}
-                await post_json(self.aiohttp_session, url, json=body, headers=self.headers)
+                await post_json(self.aiohttp_session, url, headers=self.headers, data=body)
                 log.debug(f"AIOHTTP Added {len(batch_uris)} tracks.")
             log.info("AIOHTTP Tracks Added Successfully.")
         except Exception as err:
