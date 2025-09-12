@@ -83,10 +83,9 @@ class TrackList:
     async def aiohttp_get_top_tracks(self):
         try:
             log.info(f"Getting top tracks for term {self.term}...")
-            url = f"{self.BASE_URL}/me/top/tracks"
-            params = {"limit": 25, "time_range": self.term}
+            url = f"{self.BASE_URL}/me/top/tracks?limit=25&time_range={self.term}"
 
-            data = await fetch_json(self.aiohttp_session, url, headers=self.headers, params=params)
+            data = await fetch_json(self.aiohttp_session, url, headers=self.headers)
             return data['items']
         except Exception as err:
             log.error(f"AIOHTTP Get User Top Tracks: {err}")
@@ -200,10 +199,9 @@ class TrackList:
     async def aiohttp_get_latest_releases(self, artist_id: str, offset: int = 0):
         try:
             include_groups = "album,single,appears_on,compilation"
-            url = f"{self.BASE_URL}/artists/{artist_id}/albums"
-            params = {"include_groups": include_groups, "limit": 1, "offset": offset}
+            url = f"{self.BASE_URL}/artists/{artist_id}/albums?&include_groups='{include_groups}'&limit=1&offset={offset}"
 
-            data = await fetch_json(self.aiohttp_session, url, headers=self.headers, params=params)
+            data = await fetch_json(self.aiohttp_session, url, headers=self.headers)
 
             release_uris = []
             for release in data['items']:
@@ -299,10 +297,9 @@ class TrackList:
             for i in range(0, len(album_ids), 20):
                 batch_ids = album_ids[i:i+20]
                 ids_param = ",".join(batch_ids)
-                url = f"{self.BASE_URL}/albums"
-                params = {"ids": ids_param}
+                url = f"{self.BASE_URL}/albums?ids={ids_param}"
 
-                data = await fetch_json(self.aiohttp_session, url, headers=self.headers, params=params)
+                data = await fetch_json(self.aiohttp_session, url, headers=self.headers)
 
                 for album in data["albums"]:
                     if album['album_type'] == 'single':

@@ -117,7 +117,7 @@ class Playlist:
             log.info("Creating playlist (aiohttp)..")
             url = f"{self.BASE_URL}/users/{self.user_id}/playlists"
             body = {"name": self.name, "description": self.description, "public": True}
-            data = await post_json(self.aiohttp_session, url, headers=self.headers, data=body,)
+            data = await post_json(self.aiohttp_session, url, headers=self.headers, json=body,)
             self.playlist = data
             self.id = self.playlist['id']
             log.info(f"AIOHTTP Playlist Creation Complete. ID: {self.id}")
@@ -166,7 +166,7 @@ class Playlist:
             for i in range(0, len(self.uri_list), batch_size):
                 batch_uris = self.uri_list[i:i+batch_size]
                 body = {"uris": batch_uris}
-                await post_json(self.aiohttp_session, url, headers=self.headers, data=body)
+                await post_json(self.aiohttp_session, url, headers=self.headers, json=body)
                 log.debug(f"AIOHTTP Added {len(batch_uris)} tracks.")
             log.info("AIOHTTP Tracks Added Successfully.")
         except Exception as err:
@@ -260,9 +260,8 @@ class Playlist:
             tracks_to_remove = []
             limit, offset = 100, 0
             while True:
-                url = f"{self.BASE_URL}/playlists/{self.id}/tracks"
-                params = {"limit": limit, "offset": offset}
-                data = await fetch_json(self.aiohttp_session, url, headers=self.headers, params=params)
+                url = f"{self.BASE_URL}/playlists/{self.id}/tracks?limit={limit}&offset={offset}"
+                data = await fetch_json(self.aiohttp_session, url, headers=self.headers)
                 items = data.get("items", [])
                 if not items:
                     break
