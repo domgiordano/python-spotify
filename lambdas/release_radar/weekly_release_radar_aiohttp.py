@@ -26,6 +26,7 @@ async def aiohttp_process_user(user: dict, session: aiohttp.ClientSession):
     try:
         log.info(f"Found User: {user}")
         spotify = Spotify(user, session)
+        await spotify.aiohttp_initialize_release_radar()  # fetch access token async
 
         await spotify.followed_artists.aiohttp_get_followed_artists()
         log.info(f"Followed Artist IDs found: {len(spotify.followed_artists.artist_id_list)}")

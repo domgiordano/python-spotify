@@ -19,53 +19,76 @@ class Spotify:
         self.client_id: str= SPOTIFY_CLIENT_ID
         self.aiohttp_session = session
         self.client_secret: str = SPOTIFY_CLIENT_SECRET
-        self.user_id: str = user['userId']
-        self.email: str = user['email']
-        self.refresh_token: str = user['refreshToken']
-        self.access_token: str = self.get_access_token()
-        self.headers: dict = {
+        self.user = user
+        self.user_id: str = self.user['userId']
+        self.email: str = self.user['email']
+        self.refresh_token: str = self.user['refreshToken']
+        self.access_token: str = None if self.aiohttp_session else self.get_access_token()
+        self.headers: dict = {} if self.aiohttp_session else {
             'Authorization': f'Bearer {self.access_token}',
             'Content-Type': 'application/json'
         }
-        # Wrapped
-        self.top_tracks_short: TrackList = TrackList('short_term', self.headers, self.aiohttp_session)
-        self.top_tracks_medium: TrackList = TrackList('medium_term', self.headers, self.aiohttp_session)
-        self.top_tracks_long: TrackList = TrackList('long_term', self.headers, self.aiohttp_session)
-        self.top_artists_short: ArtistList = ArtistList('short_term', self.headers, self.aiohttp_session)
-        self.top_artists_medium: ArtistList = ArtistList('medium_term', self.headers, self.aiohttp_session)
-        self.top_artists_long: ArtistList = ArtistList('long_term', self.headers, self.aiohttp_session)
-        self.last_month, self.last_month_number, self.this_year = self.__get_last_month_data()
-        self.monthly_spotify_playlist: Playlist = Playlist(
-            self.user_id,
-            f"Xomify {self.last_month}'{self.this_year}", 
-            f"Your Top 25 songs for {self.last_month} - Created by xomify.com", 
-            self.headers,
-            self.aiohttp_session
-        )
-        self.first_half_of_year_spotify_playlist: Playlist = Playlist(
-            self.user_id,
-            f"Xomify First Half '{self.this_year}",
-            f"Your Top 25 songs for the First 6 months of '{self.this_year} - Created by xomify.com",
-            self.headers,
-            self.aiohttp_session
-        )
-        self.full_year_spotify_playlist: Playlist = Playlist(
-            self.user_id,
-            f"Xomify 20{self.this_year}",
-            f"Your Top 25 songs for 20{self.this_year} - Created by xomify.com",
-            self.headers,
-            self.aiohttp_session
-        )
-        # Release Radar
-        self.release_radar_playlist: Playlist = Playlist(
-            self.user_id,
-            f"Xomify Weekly Release Radar",
-            f"All your followed artists newest songs - Created by xomify.com",
-            self.headers,
-            self.aiohttp_session
-        )
-        self.followed_artists: ArtistList = ArtistList('Following', self.headers, self.aiohttp_session)
-        self.release_radar_playlist.set_id(user.get('releaseRadarId', None))
+        
+    async def aiohttp_initialize_wrapped(self):
+        try:
+            self.access_token = await self.aiohttp_get_access_token()
+            self.headers = {
+                'Authorization': f'Bearer {self.access_token}',
+                'Content-Type': 'application/json'
+            }
+            # Wrapped
+            self.top_tracks_short: TrackList = TrackList('short_term', self.headers, self.aiohttp_session)
+            self.top_tracks_medium: TrackList = TrackList('medium_term', self.headers, self.aiohttp_session)
+            self.top_tracks_long: TrackList = TrackList('long_term', self.headers, self.aiohttp_session)
+            self.top_artists_short: ArtistList = ArtistList('short_term', self.headers, self.aiohttp_session)
+            self.top_artists_medium: ArtistList = ArtistList('medium_term', self.headers, self.aiohttp_session)
+            self.top_artists_long: ArtistList = ArtistList('long_term', self.headers, self.aiohttp_session)
+            self.last_month, self.last_month_number, self.this_year = self.__get_last_month_data()
+            self.monthly_spotify_playlist: Playlist = Playlist(
+                self.user_id,
+                f"Xomify {self.last_month}'{self.this_year}", 
+                f"Your Top 25 songs for {self.last_month} - Created by xomify.com", 
+                self.headers,
+                self.aiohttp_session
+            )
+            self.first_half_of_year_spotify_playlist: Playlist = Playlist(
+                self.user_id,
+                f"Xomify First Half '{self.this_year}",
+                f"Your Top 25 songs for the First 6 months of '{self.this_year} - Created by xomify.com",
+                self.headers,
+                self.aiohttp_session
+            )
+            self.full_year_spotify_playlist: Playlist = Playlist(
+                self.user_id,
+                f"Xomify 20{self.this_year}",
+                f"Your Top 25 songs for 20{self.this_year} - Created by xomify.com",
+                self.headers,
+                self.aiohttp_session
+            )
+        except Exception as err:
+            log.error(f"AIOHTTP Initialize Wrapped: {err}")
+            raise Exception(f"AIOHTTP Initialize Wrapped: {err}") from err
+        
+    async def aiohttp_initialize_release_radar(self):
+        try:
+            self.access_token = await self.aiohttp_get_access_token()
+            self.headers = {
+                'Authorization': f'Bearer {self.access_token}',
+                'Content-Type': 'application/json'
+            }
+            # Release Radar
+            self.release_radar_playlist: Playlist = Playlist(
+                self.user_id,
+                f"Xomify Weekly Release Radar",
+                f"All your followed artists newest songs - Created by xomify.com",
+                self.headers,
+                self.aiohttp_session
+            )
+            self.followed_artists: ArtistList = ArtistList('Following', self.headers, self.aiohttp_session)
+            self.release_radar_playlist.set_id(self.user.get('releaseRadarId', None))
+        except Exception as err:
+            log.error(f"AIOHTTP Initialize Release Radar: {err}")
+            raise Exception(f"AIOHTTP Initialize Release Radar: {err}") from err
 
     def get_access_token(self):
         try:
