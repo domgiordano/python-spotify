@@ -29,7 +29,7 @@ async def aiohttp_process_wrapped_user(user: dict, session: aiohttp.ClientSessio
     try:
         log.info(f"Found User: {user}")
         spotify = Spotify(user, session)
-        await spotify.aiohttp_initialize()  # fetch access token async
+        await spotify.aiohttp_initialize_wrapped()  # fetch access token async
 
         # Fetch top tracks and artists concurrently
         await asyncio.gather(
