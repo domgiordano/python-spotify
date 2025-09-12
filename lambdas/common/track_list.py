@@ -147,7 +147,7 @@ class TrackList:
             log.debug(len(self.track_uri_list))
 
             # Get all tracks for new albums
-            all_tracks_from_albums_uris = await self.get_several_albums_tracks()
+            all_tracks_from_albums_uris = await self.aiohttp_get_several_albums_tracks()
             log.debug(f"All Tracks from Albums: {all_tracks_from_albums_uris}")
             log.debug(len(all_tracks_from_albums_uris))
             self.track_uri_list.extend(all_tracks_from_albums_uris)
