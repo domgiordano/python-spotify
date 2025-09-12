@@ -82,19 +82,19 @@ class ArtistList:
             url = f"{self.BASE_URL}/me/following"
             params = {"type": "artist", "limit": 50}
             
-            artists = []
+            artist_ids = []
             after = None
 
             while True:
                 if after:
                     params["after"] = after
                 data = await fetch_json(self.aiohttp_session, url, headers=self.headers, params=params)
-                artists.extend(data["artists"]["items"])
+                artist_ids.extend(data["artists"]["items"])
                 if not data["artists"]["cursors"].get("after"):
                     break
                 after = data["artists"]["cursors"]["after"]
 
-            return artists
+            self.artist_id_list = artist_ids
         except Exception as err:
             log.error(f"AIOHTTP Get Followed Artists: {err}")
             raise Exception(f"AIOHTTP Get Followed Artists: {err}") from err

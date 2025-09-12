@@ -11,7 +11,7 @@ log = LOGGER.get_logger(__file__)
 
 async def aiohttp_wrapped_chron_job(event):
     try:
-        log.info("Starting Wrapped Chron Job...")
+        log.info("Starting AIOHTTP Wrapped Chron Job...")
         wrapped_users = get_active_wrapped_users()
 
         async with aiohttp.ClientSession() as session:

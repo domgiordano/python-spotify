@@ -9,7 +9,7 @@ log = LOGGER.get_logger(__file__)
 
 async def aiohttp_release_radar_chron_job(event):
     try:
-        log.info("Starting Release Radar Chron Job...")
+        log.info("Starting AIOHTTP Release Radar Chron Job...")
         release_radar_users = get_active_release_radar_users()
 
         async with aiohttp.ClientSession() as session:
