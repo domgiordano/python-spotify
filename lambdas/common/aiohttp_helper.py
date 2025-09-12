@@ -42,6 +42,7 @@ async def post_json(session: aiohttp.ClientSession, url: str, headers: dict = No
                 retry_after = int(resp.headers.get('Retry-After', 1))
                 log.warning(f"Rate limit reached for POST {url}. Retrying after {retry_after} seconds...")
                 # Block everyone - wait - reset
+                log.warning(f"RETRY AFTER: {retry_after}s.")
                 rate_limited.clear()
                 await asyncio.sleep(retry_after + 1)
                 rate_limited.set()
