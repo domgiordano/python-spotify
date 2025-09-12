@@ -40,6 +40,8 @@ def get_followed_artists(headers: dict):
 async def get_artist_latest_release(artist_id_list: list, headers: dict):
     print("Getting artsist releases within the last week...")
     tasks = [get_latest_releases(id, headers) for id in artist_id_list]
+    print("TASKS------")
+    print(tasks)
     # Get all ids of latest releases for the week
     artist_latest_release_uris = await asyncio.gather(*tasks)
     print("RESUTL =========")
