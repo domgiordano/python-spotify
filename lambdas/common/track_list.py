@@ -57,33 +57,39 @@ class TrackList:
             raise Exception(f"Get User Top Tracks {self.term}: {err}")
         
     async def get_artist_latest_release(self, artist_id_list: list):
-        log.info("Getting artsist releases within the last week...")
-        tasks = [self.get_latest_releases(id) for id in artist_id_list]
-        # Get all ids of latest releases for the week
-        artist_latest_release_uris = await asyncio.gather(*tasks)
-        combined_artist_latest_release_uris = [item for sublist in artist_latest_release_uris for item in sublist]
-        log.info(f"Latest Release IDs: {combined_artist_latest_release_uris}")
-        log.info(len(combined_artist_latest_release_uris))
-        # Remove None values - split lists
-        self.track_uri_list, self.album_uri_list = self.__split_spotify_uris(combined_artist_latest_release_uris)
-        log.info(f"Latest Release Albums: {self.album_uri_list}")
-        log.info(len(self.album_uri_list))
-        log.info(f"Latest Release Tracks: {self.track_uri_list}")
-        log.info(len(self.track_uri_list))
+        try:
+            log.info("Getting artsist releases within the last week...")
+            tasks = [self.get_latest_releases(id) for id in artist_id_list]
+            # Get all ids of latest releases for the week
+            artist_latest_release_uris = await asyncio.gather(*tasks)
+            combined_artist_latest_release_uris = [item for sublist in artist_latest_release_uris for item in sublist]
+            log.info(f"Latest Release IDs: {combined_artist_latest_release_uris}")
+            log.info(len(combined_artist_latest_release_uris))
+            # Remove None values - split lists
+            self.track_uri_list, temp_album_uri_list = self.__split_spotify_uris(combined_artist_latest_release_uris)
+            # Remove Duplicate Albums
+            self.album_uri_list = list(set(temp_album_uri_list))
+            log.info(f"Latest Release Albums: {self.album_uri_list}")
+            log.info(len(self.album_uri_list))
+            log.info(f"Latest Release Tracks: {self.track_uri_list}")
+            log.info(len(self.track_uri_list))
 
-        # Get all tracks for new albums
-        all_tracks_from_albums_uris = await self.get_several_albums_tracks()
-        log.info(f"All Tracks from Albums: {all_tracks_from_albums_uris}")
-        log.info(len(all_tracks_from_albums_uris))
-        self.track_uri_list.extend(all_tracks_from_albums_uris)
-        # Remove Duplicates
-        self.final_tracks_uris = list(set(self.track_uri_list))
-        log.info(f"All Tracks total: {len(self.final_tracks_uris)}")
-
+            # Get all tracks for new albums
+            all_tracks_from_albums_uris = await self.get_several_albums_tracks()
+            log.info(f"All Tracks from Albums: {all_tracks_from_albums_uris}")
+            log.info(len(all_tracks_from_albums_uris))
+            self.track_uri_list.extend(all_tracks_from_albums_uris)
+            # Remove Duplicates
+            self.final_tracks_uris = list(set(self.track_uri_list))
+            log.info(f"All Tracks total: {len(self.final_tracks_uris)}")
+        except Exception as err:
+            log.error(f"Get Artist Latest Release: {err}")
+            raise Exception(f"Get Artist Latest Release: {err}")
     
     async def get_latest_releases(self, artist_id):
         try:
-            url = f"{self.BASE_URL}/artists/{artist_id}/albums?limit=3&offset=0"
+            include_groups = "album,single,appears_on,compilation"
+            url = f"{self.BASE_URL}/artists/{artist_id}/albums?&include_groups='{include_groups}'&limit=3&offset=0"
 
             # Make the request
             response = requests.get(url, headers=self.headers)
@@ -108,11 +114,13 @@ class TrackList:
                     release_uris.append(release['uri'])
                 else:
                     log.info("Old Release Skipped.")
+                
+                print("\n")
             return release_uris
 
         except Exception as err:
-            log.error(f"Get Artist Latest Release: {err}")
-            raise Exception(f"Get Artist Latest Release: {err}")
+            log.error(f"Get Latest Releases: {err}")
+            raise Exception(f"Get Latest Releases: {err}")
     
     async def get_album_tracks(self, album_uri: str):
         try:
@@ -181,7 +189,7 @@ class TrackList:
 
             # Calculate the absolute difference in days
             difference_in_days = abs((today - target_date).days)
-            log.info(difference_in_days < 7)
+            log.info(f"Release Within Last 7 days??: {difference_in_days < 7}")
             return difference_in_days < 7
         except Exception as err:
             log.error(f"Is Date Within a week: {err}")

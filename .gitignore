@@ -1,3 +1,7 @@
+# TESTING
+sbx/users/*
+sbx/priv*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
