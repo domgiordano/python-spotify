@@ -79,21 +79,20 @@ class ArtistList:
     
     async def aiohttp_get_followed_artists(self):
         try:
-            url = f"{self.BASE_URL}/me/following"
-            params = {"type": "artist", "limit": 50}
+            url = f"{self.BASE_URL}/me/following?type=artist&limit=50"
             
             artist_ids = []
-            after = None
+            next = None
 
             while True:
-                if after:
-                    params["after"] = after
-                data = await fetch_json(self.aiohttp_session, url, headers=self.headers, params=params)
+                if next:
+                    url = next
+                data = await fetch_json(self.aiohttp_session, url, headers=self.headers)
                 ids = [artist['id'] for artist in data['artists']['items']]
                 artist_ids.extend(ids)
-                if not data["artists"]["cursors"].get("after"):
+                next = data["artists"]["next"]
+                if not next:
                     break
-                after = data["artists"]["cursors"]["after"]
 
             self.artist_id_list = artist_ids
         except Exception as err:
@@ -151,10 +150,9 @@ class ArtistList:
     
     async def aiohttp_get_top_artists(self):
         try:
-            url = f"{self.BASE_URL}/me/top/artists"
-            params = {"limit": 25, "time_range": self.term}
+            url = f"{self.BASE_URL}/me/top/artists?limit=25&time_range={self.term}"
 
-            data = await fetch_json(self.aiohttp_session, url, headers=self.headers, params=params)
+            data = await fetch_json(self.aiohttp_session, url, headers=self.headers)
             return data['items']
         except Exception as err:
             log.error(f"AIOHTTP Get User Top Artists: {err}")

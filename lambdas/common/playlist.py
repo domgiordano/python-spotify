@@ -260,9 +260,8 @@ class Playlist:
             tracks_to_remove = []
             limit, offset = 100, 0
             while True:
-                url = f"{self.BASE_URL}/playlists/{self.id}/tracks"
-                params = {"limit": limit, "offset": offset}
-                data = await fetch_json(self.aiohttp_session, url, headers=self.headers, params=params)
+                url = f"{self.BASE_URL}/playlists/{self.id}/tracks?limit={limit}&offset={offset}"
+                data = await fetch_json(self.aiohttp_session, url, headers=self.headers)
                 items = data.get("items", [])
                 if not items:
                     break

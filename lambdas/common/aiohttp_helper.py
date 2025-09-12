@@ -4,14 +4,14 @@ from lambdas.common.constants import LOGGER
 
 log = LOGGER.get_logger(__file__)
 
-async def fetch_json(session: aiohttp.ClientSession, url: str, headers: dict = None, params: dict = None):
+async def fetch_json(session: aiohttp.ClientSession, url: str, headers: dict = None):
     try:
-        async with session.get(url, headers=headers, params=params) as resp:
+        async with session.get(url, headers=headers) as resp:
             if resp.status == 429:
                 retry_after = int(resp.headers.get('Retry-After', 1))
                 log.warning(f"Rate limit reached for GET {url}. Retrying after {retry_after} seconds...")
                 await asyncio.sleep(retry_after + 1)
-                return await fetch_json(session, url, headers, params)
+                return await fetch_json(session, url, headers)
 
             if resp.status != 200:
                 text = await resp.text()
