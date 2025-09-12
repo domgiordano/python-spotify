@@ -53,7 +53,7 @@ async def aiohttp_process_user(user: dict, session: aiohttp.ClientSession):
             log.info(f"User Table updated with playlist id {spotify.release_radar_playlist.id}")
         else:
             log.info(f"Playlist ID found: {spotify.release_radar_playlist.id}")
-            log.debug(f"{spotify.email} User's final tracks: {spotify.followed_artists.artist_tracks.final_tracks_uris}")
+            log.info(f"{spotify.email} User's final tracks: {spotify.followed_artists.artist_tracks.final_tracks_uris}")
             await spotify.release_radar_playlist.aiohttp_update_playlist(
                 spotify.followed_artists.artist_tracks.final_tracks_uris
             )
