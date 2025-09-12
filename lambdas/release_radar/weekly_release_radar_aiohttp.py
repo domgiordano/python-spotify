@@ -14,10 +14,20 @@ async def aiohttp_release_radar_chron_job(event):
 
         async with aiohttp.ClientSession() as session:
             tasks = [aiohttp_process_user(user, session) for user in release_radar_users]
-            response = await asyncio.gather(*tasks, return_exceptions=True)
+            results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        log.info(f"Full Response Complete for Users: {response}")
-        return response
+        failures = []
+        success = []
+        for user, result in zip(release_radar_users, results):
+            if isinstance(result, Exception):
+                log.error(f"User {user['email']} failed: {result}")
+                failures.append(result)
+            else:
+                success.append(result)
+
+        log.info(f"User Success: {success}")
+        log.info(f"User Failures: {failures}")
+        return success, failures
     except Exception as err:
         log.error(f"AIOHTTP Release Radar Chron Job: {err}")
         raise Exception(f"AIOHTTP Release Radar Chron Job: {err}") from err
