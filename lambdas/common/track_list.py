@@ -3,7 +3,7 @@ import aiohttp
 import time
 from datetime import datetime
 import asyncio
-from lambdas.common.aiohttp_helper import fetch_json, post_json
+from lambdas.common.aiohttp_helper import fetch_json
 from lambdas.common.constants import LOGGER
 
 log = LOGGER.get_logger(__file__)

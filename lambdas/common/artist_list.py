@@ -2,7 +2,7 @@ import requests
 import aiohttp
 from lambdas.common.track_list import TrackList
 from lambdas.common.constants import LOGGER
-from lambdas.common.aiohttp_helper import fetch_json, post_json
+from lambdas.common.aiohttp_helper import fetch_json
 
 log = LOGGER.get_logger(__file__)
 
